@@ -8,6 +8,7 @@ import ExternalLinkIcon from "@heroicons/react/solid/ExternalLinkIcon";
 import QuestionMarkCircleIcon from "@heroicons/react/outline/QuestionMarkCircleIcon";
 import LoginIcon from "@heroicons/react/solid/LoginIcon";
 import LogoutIcon from "@heroicons/react/solid/LogoutIcon";
+import Link from "next/link";
 
 function MySidebar({ isConnectedToYNAB }) {
   const { user } = useUser();
@@ -40,7 +41,9 @@ function MySidebar({ isConnectedToYNAB }) {
           >
             <HomeIcon height={25} width={25} />
             <div className="ml-1">
-              <a href="/">Home</a>
+              <Link href={"/"}>
+                <a>Home</a>
+              </Link>
             </div>
           </div>
         </li>

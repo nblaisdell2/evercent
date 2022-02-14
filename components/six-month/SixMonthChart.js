@@ -80,8 +80,9 @@ function SixMonthChart(props) {
         {props.sixMonthDetails.categories.length == 0 ? (
           <div>
             <div className="text-center">
-              Mark some Categories as a "Regular Expense" to track your progress
-              on each of those categories.
+              {
+                'Mark some Categories as a "Regular Expense" to track your progress on each of those categories.'
+              }
             </div>
           </div>
         ) : (

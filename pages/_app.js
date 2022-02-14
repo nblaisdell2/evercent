@@ -7,7 +7,7 @@ function MyApp({ Component, pageProps }) {
     <UserProvider
       domain={process.env.AUTH0_DOMAIN}
       clientId={process.env.AUTH0_CLIENT_ID}
-      redirectUri={process.env.AUTH0_REDIRECT_LOCAL}
+      redirectUri={process.env.AUTH0_REDIRECT}
     >
       <Head>
         <title>EverCent</title>

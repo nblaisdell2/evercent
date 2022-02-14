@@ -19,18 +19,19 @@ function UpcomingExpensesInfo(props) {
             <div>On the Budget Helper tab...</div>
             <ul className="list-disc list-inside ml-5">
               <li>Select a Category</li>
-              <li>Choose "Upcoming Expense" from the Options section</li>
+              <li>{'Choose "Upcoming Expense" from the Options section'}</li>
               <li>
-                Then, enter the "Total Expense Amount", or the price of the
-                entire expense.
+                {
+                  'Then, enter the "Total Expense Amount", or the price of the entire expense.'
+                }
               </li>
             </ul>
           </div>
 
           <div className="text-center">
-            For every category marked as an "Upcoming Expense", you can come
-            back here and see how long it will take to be able to purchase that
-            expense!
+            {
+              'For every category marked as an "Upcoming Expense", you can come back here and see how long it will take to be able to purchase that expense!'
+            }
           </div>
         </div>
       );

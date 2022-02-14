@@ -61,7 +61,7 @@ function BudgetChartInfo(props) {
           Please Connect to YNAB to get Category Details
         </div>
         <div className="text-lg mt-5">
-          To connect, use the "Connect to YNAB" button in the top-right!
+          {'To connect, use the "Connect to YNAB" button in the top-right!'}
         </div>
       </div>
     );
