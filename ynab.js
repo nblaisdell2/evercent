@@ -28,7 +28,7 @@ export async function GetNewAccessToken(authCode) {
   return await get_ynab_oauth_token({
     client_id: process.env.YNAB_CLIENT_ID,
     client_secret: process.env.YNAB_CLIENT_SECRET,
-    redirect_uri: process.env.YNAB_REDIRECT_URI_LOCAL,
+    redirect_uri: process.env.YNAB_REDIRECT_URI,
     grant_type: "authorization_code",
     code: authCode,
   });
