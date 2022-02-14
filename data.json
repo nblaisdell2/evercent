@@ -1,0 +1,33 @@
+{
+    "Queries": {
+        "GET_USER_DETAILS": "spBH_getUserDetailsInitial",
+        "GET_CATEGORY_DETAILS": "spBH_getCategoryDetails",
+        "ADD_YNAB_ACCESS_TOKEN": "spBH_YN_AddAccessToken",
+        "UPDATE_YNAB_ACCESS_TOKEN": "spBH_YN_UpdateAccessToken",
+        "UPDATE_DEFAULT_BUDGET_ID": "spBH_UpdateDefaultBudgetID2",
+        "UPDATE_CATEGORY_LIST": "spBH_UpdateCategoryDetails",
+        "UPDATE_USER_DETAILS": "spBH_UpdateUserDetails",
+        "UPDATE_AUTO_RUN_LIST": "spBH_UpdateAutoRunList",
+        "DELETE_AUTO_RUN_LIST": "spBH_deleteAutomationRuns",
+        "UPDATE_YNAB_TOKENS": "spBH_YN_UpdateTokens",
+        "UPDATE_CATEGORY_EXPENSE_DATE": "spBH_UpdateCategoryExpenseDate",
+        "UPDATE_CATEGORY_INCLUDE": "spBH_UpdateCategoryIncludeOnChart"
+    },
+    "MyCookies": {
+        "MONTHLY_AMOUNT": "MonthlyAmount",
+        "MONTHS_AHEAD_TARGET": "MonthsAheadTarget",
+        "PAY_FREQUENCY": "PayFrequency",
+        "NEXT_PAYDATE": "NextPaydate",
+        "ACCESS_TOKEN": "AccessToken",
+        "REFRESH_TOKEN": "RefreshToken",
+        "EXPIRATION_DATE": "ExpirationDate",
+        "DEFAULT_BUDGET_ID": "DefaultBudgetID",
+        "USER_CATEGORY_LIST": "UserCategoryList",
+        "UNSAVED_CHANGES": "UnsavedChanges"
+    },
+    "Modals": {
+        "YNAB_CATEGORIES": "Categories",
+        "AUTOMATION": "Automation",
+        "SETUP_BUDGET": "Initialize"
+    }
+}
