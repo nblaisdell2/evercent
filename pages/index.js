@@ -188,12 +188,13 @@ export default function Home({
         ClearCookies(cookies);
         sessionStorage.clear();
       }
+
+      setFirstLoad(false);
     }
   }, [isLoading]);
 
   useEffect(async () => {
     if (firstLoad) {
-      setFirstLoad(false);
       return;
     }
 
@@ -228,6 +229,10 @@ export default function Home({
   }, [userDetails]);
 
   useEffect(async () => {
+    if (firstLoad) {
+      return;
+    }
+
     console.log("useEffect - userCategoryList");
     let newUserList = [...userCategoryList];
     console.log(newUserList);
@@ -278,6 +283,10 @@ export default function Home({
   }, [userCategoryList]);
 
   useEffect(async () => {
+    if (firstLoad) {
+      return;
+    }
+
     console.log("useEffect - sixMonthDetails");
     console.log(sixMonthDetails);
 
@@ -294,6 +303,10 @@ export default function Home({
   }, [sixMonthDetails]);
 
   useEffect(async () => {
+    if (firstLoad) {
+      return;
+    }
+
     console.log("useEffect - NextAutoRuns");
 
     let newRunList = [...nextAutoRuns];
