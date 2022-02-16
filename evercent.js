@@ -32,8 +32,8 @@ async function getUserDetailsFromDB(userEmail, cookies) {
       ExistingData: JSON.stringify(allCookies),
     });
 
-    console.log("dbData");
-    console.log(dbData);
+    // console.log("dbData");
+    // console.log(dbData);
 
     if (dbData.length > 0) {
       preUserDetails = dbData[0][0];
@@ -151,20 +151,23 @@ export async function getSixMonthTargetMetCount(
       let monthCat = null;
       if (currCat.categoryAmount > 0) {
         if (currCat.expenseType == "Monthly") {
-          monthCat = mthDetailsIn[0].categories.find(
+          monthCat = mthDetailsIn[mthDetailsIn.length - 1].categories.find(
             (x) =>
               x.category_group_id == currCat.categoryGroupID &&
               x.id == currCat.id
           );
+
           currCat.monthsAhead =
             Math.floor(monthCat.balance / 1000 / currCat.categoryAmount) - 1;
         } else {
-          for (let j = mthDetailsIn.length - 2; j >= 0; j--) {
+          for (let j = mthDetailsIn.length - 2; j >= 1; j--) {
             monthCat = mthDetailsIn[j].categories.find(
               (x) =>
                 x.category_group_id == currCat.categoryGroupID &&
                 x.id == currCat.id
             );
+            console.log("Checking currCat", currCat);
+            console.log("monthCat", monthCat);
 
             let catAmt = currCat.categoryAmount / currCat.expenseMonthsDivisor;
             if (monthCat.budgeted / 1000 >= catAmt) {
