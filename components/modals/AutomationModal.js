@@ -3,6 +3,7 @@ import AutomationEditModal from "./AutomationEditModal";
 import AutomationReviewModal from "./AutomationReviewModal";
 import { advanceDateByFrequency, getFutureAutoDateList } from "../../evercent";
 import { treatAsUTC } from "../../utils";
+import AutomationPastRunsModal from "./AutomationPastRunsModal";
 
 function AutomationModal(props) {
   const [firstLoad, setFirstLoad] = useState(true);
@@ -11,6 +12,7 @@ function AutomationModal(props) {
   const [showReview, setShowReview] = useState(
     props.userDetails.NextAutomatedRun ? true : false
   );
+  const [showPastRuns, setShowPastRuns] = useState(false);
 
   const [setupType, setSetupType] = useState(
     props.NextAutoRuns && props.NextAutoRuns[0]
@@ -104,7 +106,23 @@ function AutomationModal(props) {
     }
   }, [showReview]);
 
-  if (!showReview) {
+  if (showPastRuns) {
+    return (
+      <AutomationPastRunsModal scheduleChanged={scheduleChanged} {...props} />
+    );
+  } else if (showReview) {
+    return (
+      <AutomationReviewModal
+        tempAutoRuns={tempAutoRuns}
+        scheduleChanged={scheduleChanged}
+        setShowReview={setShowReview}
+        setShowPastRuns={setShowPastRuns}
+        saveAutomationRuns={saveAutomationRuns}
+        deleteAutomationRuns={deleteAutomationRuns}
+        {...props}
+      />
+    );
+  } else {
     return (
       <AutomationEditModal
         setupType={setupType}
@@ -119,17 +137,6 @@ function AutomationModal(props) {
         availAMPM={availAMPM}
         setShowReview={setShowReview}
         generateAutoRunList={generateAutoRunList}
-        {...props}
-      />
-    );
-  } else {
-    return (
-      <AutomationReviewModal
-        tempAutoRuns={tempAutoRuns}
-        scheduleChanged={scheduleChanged}
-        setShowReview={setShowReview}
-        saveAutomationRuns={saveAutomationRuns}
-        deleteAutomationRuns={deleteAutomationRuns}
         {...props}
       />
     );

@@ -13,22 +13,38 @@ function BudgetChartInfo(props) {
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   const setChangesMade = (madeChanges) => {
+    // if (madeChanges) {
     let newUserDetails = { ...props.userDetails };
     newUserDetails.UnsavedChanges = madeChanges;
     props.setUserDetails(newUserDetails);
+    // }
   };
 
   const saveCategoryResults = () => {
     console.log("BudgetChartInfo - Saving Category Results");
     let newCategoryList = [...props.userCategoryList];
-    if (newCategoryList && newCategoryList.length > 0) {
-      // console.log("About to set shouldSave");
-      // console.log(newCategoryList);
-      newCategoryList[0].shouldSave = true;
-      // console.log("Set shouldSave!");
-      // console.log(newCategoryList);
+    if (newCategoryList) {
+      console.log("About to set shouldSave");
+      console.log(newCategoryList);
+      if (newCategoryList.length == 0) {
+        // newCategoryList.push({ shouldSave: true });
+      } else {
+        newCategoryList[0].shouldSave = true;
+      }
+      console.log("Set shouldSave!");
+      console.log(newCategoryList);
       props.setUserCategoryList(newCategoryList);
     }
+    // console.log("BudgetChartInfo - Saving Category Results");
+    // let newCategoryList = [...props.userCategoryList];
+    // if (newCategoryList && newCategoryList.length > 0) {
+    //   // console.log("About to set shouldSave");
+    //   // console.log(newCategoryList);
+    //   newCategoryList[0].shouldSave = true;
+    //   // console.log("Set shouldSave!");
+    //   // console.log(newCategoryList);
+    //   props.setUserCategoryList(newCategoryList);
+    // }
   };
 
   const getNextAutoRunString = (nextRun) => {
@@ -107,6 +123,7 @@ function BudgetChartInfo(props) {
           userCategoryList: props.userCategoryList,
           monthlyAmount: props.userDetails.MonthlyAmount,
           setUserCategoryList: props.setUserCategoryList,
+          frequency: props.userDetails.PayFrequency,
           setSelectedCategory: setSelectedCategory,
         }}
         listName={"BudgetCategoryList"}

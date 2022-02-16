@@ -61,6 +61,7 @@ const cookies = new Cookies();
 export default function Home({
   preUserDetails,
   preAutoRuns,
+  prePastAutoRuns,
   preUserCategories,
   preSixMonthDetails,
   preUpcomingDetails,
@@ -75,6 +76,7 @@ export default function Home({
 
   const [userDetails, setUserDetails] = useState(preUserDetails);
   const [nextAutoRuns, setNextAutoRuns] = useState(preAutoRuns);
+  const [pastAutoRuns, setPastAutoRuns] = useState(prePastAutoRuns);
   const [ynabCategories, setYnabCategories] = useState(preYNABCategories);
   const [userCategoryList, setUserCategoryList] = useState(preUserCategories);
   const [sixMonthDetails, setSixMonthDetails] = useState(preSixMonthDetails);
@@ -159,7 +161,12 @@ export default function Home({
 
         resetCategoryDetails(savedList);
       } else {
-        if (userCategoryList && userCategoryList.length == 0 && savedList) {
+        if (
+          userCategoryList &&
+          userCategoryList.length == 0 &&
+          savedList &&
+          savedList.length > 0
+        ) {
           // If we log in, and there were categories in session storage, but the user didn't have ANY categories
           // previously saved in the database, then we can assume that the user is logging in for the first time,
           // and we want to save their session results into the database. I'd like to do this in pre-rendering, but
@@ -194,7 +201,7 @@ export default function Home({
     console.log(userDetails);
 
     if (user) {
-      postAPIDataClient(data.Queries.UPDATE_USER_DETAILS, {
+      await postAPIDataClient(data.Queries.UPDATE_USER_DETAILS, {
         UserID: userDetails.UserID,
         BudgetID: userDetails.DefaultBudgetID,
         MonthlyAmount: userDetails.MonthlyAmount,
@@ -203,7 +210,7 @@ export default function Home({
         NextPaydate: userDetails.NextPaydate,
       });
 
-      postAPIDataClient(data.Queries.UPDATE_YNAB_TOKENS, {
+      await postAPIDataClient(data.Queries.UPDATE_YNAB_TOKENS, {
         UserID: userDetails.UserID,
         AccessToken: userDetails.AccessToken,
         ExpirationDate: userDetails.ExpirationDate,
@@ -222,30 +229,38 @@ export default function Home({
 
   useEffect(async () => {
     console.log("useEffect - userCategoryList");
-    console.log(userCategoryList);
+    let newUserList = [...userCategoryList];
+    console.log(newUserList);
     // console.log(userCategoryList[0]);
     // console.log(userCategoryList[0]?.shouldSave);
 
     let newSixMoDt = await setYnabSixMonthDetails(
-      userCategoryList,
-      userDetails.MonthsAheadTarget
+      newUserList,
+      userDetails.MonthsAheadTarget,
+      preYNABMonthDetails
     );
     setSixMonthDetails(newSixMoDt);
 
     let newUpcomingDetails = await getUpcomingDetails(
-      userCategoryList,
+      newUserList,
       userDetails.PayFrequency,
       userDetails.NextPaydate
     );
     setUpcomingDetails(newUpcomingDetails);
 
-    if (userCategoryList && userCategoryList[0]?.shouldSave) {
-      let newUserList = [...userCategoryList];
+    if (
+      newUserList &&
+      (newUserList[0]?.shouldSave || newUserList.length == 0)
+    ) {
       // console.log("useEffect - userCategoryList - before deleting shouldSave");
       // console.log(newUserList);
       delete newUserList[0]?.shouldSave;
       // console.log("useEffect - userCategoryList - after deleting shouldSave");
       // console.log(newUserList);
+
+      // if (newUserList.length == 1 && Object.keys(newUserList[0]).length == 0) {
+      //   newUserList = [];
+      // }
 
       if (user) {
         await postAPIDataClient(data.Queries.UPDATE_CATEGORY_LIST, {
@@ -264,6 +279,7 @@ export default function Home({
 
   useEffect(async () => {
     console.log("useEffect - sixMonthDetails");
+    console.log(sixMonthDetails);
 
     if (sixMonthDetails && sixMonthDetails?.shouldSave) {
       let newSixMoDt = { ...sixMonthDetails };
@@ -313,6 +329,7 @@ export default function Home({
   console.log("Six Month Details:  ", sixMonthDetails);
   console.log("Upcoming Details:   ", upcomingDetails);
   console.log("Next Auto Runs:     ", nextAutoRuns);
+  console.log("Past Auto Runs:     ", pastAutoRuns);
   console.log("YNAB Category List: ", ynabCategories);
 
   return (
@@ -339,6 +356,8 @@ export default function Home({
         setUpcomingDetails={setUpcomingDetails}
         nextAutoRuns={nextAutoRuns}
         setNextAutoRuns={setNextAutoRuns}
+        pastAutoRuns={pastAutoRuns}
+        setPastAutoRuns={setPastAutoRuns}
         ynabCategories={ynabCategories}
         setYnabCategories={setYnabCategories}
       />

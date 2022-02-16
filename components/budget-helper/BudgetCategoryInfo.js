@@ -163,13 +163,13 @@ function BudgetCategoryInfo(props) {
                 checked={category.includeOnChart}
                 onClick={() => updateCategory(UpdateType.TOGGLE_ON_CHART)()}
               />
-              <MyCheckbox
+              {/* <MyCheckbox
                 label={"Toggle Include?"}
                 checked={category.toggleInclude}
                 onClick={() =>
                   updateCategory(UpdateType.TOGGLE_TOGGLE_INCLUDE)()
                 }
-              />
+              /> */}
               <MyCheckbox
                 label={"Always Use Current Month?"}
                 checked={category.useCurrentMonth}

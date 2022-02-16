@@ -233,6 +233,8 @@ function SetupBudgetModal(props) {
     );
   }
 
+  console.log("Setup Categories", setupCategories);
+
   return (
     <div className="h-[800px] relative overflow-y-auto flex flex-col">
       {/* Amount Remaining Section */}

@@ -1,22 +1,39 @@
 import MinusCircleIcon from "@heroicons/react/outline/MinusCircleIcon";
 import CheckIcon from "@heroicons/react/outline/CheckIcon";
 import ArrowLeftIcon from "@heroicons/react/outline/ArrowLeftIcon";
+import ClockIcon from "@heroicons/react/outline/ClockIcon";
 import {
   getAmountByFrequency,
-  getCategoryListItems,
+  getCategoryListItemsWithMonths,
   getGrandTotal,
 } from "../../evercent";
 import { treatAsUTC } from "../../utils";
+import { useState } from "react";
 
 function AutomationReviewModal(props) {
-  let myListItems = getCategoryListItems(
+  const [selectedCatIDs, setSelectedCatIDs] = useState([]);
+
+  const toggleShowAmountsPerCategory = (category) => {
+    let newCatIDs = [...selectedCatIDs];
+    if (newCatIDs.includes(category.id)) {
+      newCatIDs = newCatIDs.filter((x) => x !== category.id);
+    } else {
+      newCatIDs.push(category.id);
+    }
+    setSelectedCatIDs(newCatIDs);
+  };
+
+  let myListItems = getCategoryListItemsWithMonths(
     props.userCategoryList,
-    props.userDetails.MonthlyAmount
-  ).filter((x) => x.amountNum > 0);
+    props.userDetails.MonthlyAmount,
+    props.userDetails.PayFrequency
+  );
 
   let freq = props.tempAutoRuns[0].Frequency;
   let grandTotal = getGrandTotal(props.userCategoryList);
   grandTotal = getAmountByFrequency(grandTotal, freq);
+
+  console.log("ListItems w/ Months", myListItems);
 
   return (
     <div className="h-[600px] flex flex-col mt-1 m-5 relative">
@@ -27,20 +44,37 @@ function AutomationReviewModal(props) {
 
       {/* Next Auto Runs List */}
       <div className="flex flex-col mt-5">
-        <div className="">
-          <div
-            onClick={() => {
-              props.setShowReview(false);
-            }}
-            className="float-left font-bold flex hover:underline hover:cursor-pointer"
-          >
-            <ArrowLeftIcon className="h-6 w-6 mr-1" />
-            <p>Edit Schedule</p>
+        <div className="flex justify-between mb-1">
+          <div>
+            <div
+              onClick={() => {
+                props.setShowReview(false);
+              }}
+              className="font-bold flex p-1 hover:underline hover:cursor-pointer hover:bg-blue-400 hover:text-white hover:rounded-md"
+            >
+              <ArrowLeftIcon className="h-6 w-6 mr-1" />
+              <p>Edit Schedule</p>
+            </div>
           </div>
-          <div className="text-center font-bold text-xl uppercase mr-32">
-            Next Auto Run(s)
+
+          <div>
+            <div className="text-center font-bold text-xl uppercase">
+              Next Auto Run(s)
+            </div>
+          </div>
+          <div>
+            <div
+              onClick={() => {
+                props.setShowPastRuns(true);
+              }}
+              className="font-bold flex p-1 hover:underline hover:cursor-pointer hover:bg-blue-400 hover:text-white hover:rounded-md"
+            >
+              <ClockIcon className="h-6 w-6 mr-1" />
+              <p>See Past Runs</p>
+            </div>
           </div>
         </div>
+
         <div className="h-[120px] w-full overflow-y-auto flex flex-col items-center border-2 border-black rounded-md">
           {props.tempAutoRuns?.map((v, i) => {
             return (
@@ -58,7 +92,7 @@ function AutomationReviewModal(props) {
       </div>
 
       {/* Total & Category Amounts */}
-      <div className="mt-5">
+      <div className="my-3">
         <div className="font-bold text-xl uppercase text-center">
           Amounts Posted to YNAB on{" "}
           {props.tempAutoRuns &&
@@ -77,21 +111,34 @@ function AutomationReviewModal(props) {
             </div>
           </div>
           {myListItems.map((v, i) => {
-            let amtNum = getAmountByFrequency(v.amountNum, freq);
-
+            if (v.month && !selectedCatIDs.includes(v.id)) {
+              return <></>;
+            }
             return (
               <div
-                key={i}
+                key={v.id + i.toString()}
                 className={`flex justify-between ${
-                  v.isParent ? "" : " hover:bg-gray-300"
+                  v.isParent ? "" : " hover:bg-gray-300 hover:cursor-pointer"
                 }`}
+                onClick={() => toggleShowAmountsPerCategory(v)}
               >
-                <div className={`${v.isParent ? "font-bold" : "ml-5"}`}>
-                  {v.category}
-                </div>
-                <div className={`${v.isParent ? "font-bold" : ""}`}>
-                  {"$" + amtNum.toFixed(2)}
-                </div>
+                {!v.month ? (
+                  <>
+                    <div className={`${v.isParent ? "font-bold" : "ml-5"}`}>
+                      {v.category}
+                    </div>
+                    <div className={`${v.isParent ? "font-bold" : ""}`}>
+                      {"$" + getAmountByFrequency(v.amountNum, freq).toFixed(2)}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="ml-10 italic text-gray-400">{v.month}</div>
+                    <div className="italic text-xs flex items-center">
+                      {"$" + v.amountNum.toFixed(2)}
+                    </div>
+                  </>
+                )}
               </div>
             );
           })}

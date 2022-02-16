@@ -18,6 +18,7 @@ import data from "./data.json";
 async function getUserDetailsFromDB(userEmail, cookies) {
   let preUserDetails = {};
   let preAutoRuns = [];
+  let prePastAutoRuns = [];
   let preUserCategories = [];
 
   let dbData = null;
@@ -30,6 +31,9 @@ async function getUserDetailsFromDB(userEmail, cookies) {
       ExistingData: JSON.stringify(allCookies),
     });
 
+    console.log("dbData");
+    console.log(dbData);
+
     if (dbData.length > 0) {
       preUserDetails = dbData[0][0];
 
@@ -38,7 +42,11 @@ async function getUserDetailsFromDB(userEmail, cookies) {
       }
 
       if (dbData[2]) {
-        preUserCategories = dbData[2];
+        prePastAutoRuns = dbData[2];
+      }
+
+      if (dbData[3]) {
+        preUserCategories = dbData[3];
       }
     }
   } catch (err) {
@@ -60,10 +68,7 @@ async function getUserDetailsFromDB(userEmail, cookies) {
 
   preUserDetails.UnsavedChanges = false;
 
-  console.log("preAutoRuns from database");
-  console.log(preAutoRuns);
-
-  return [preUserDetails, preAutoRuns, preUserCategories];
+  return [preUserDetails, preAutoRuns, prePastAutoRuns, preUserCategories];
 }
 
 async function getUserDetailsFromCookies(cookies) {
@@ -130,18 +135,22 @@ export async function getUpcomingDetails(categoryList, frequency, nextPaydate) {
   return upcomingDetails;
 }
 
-export async function getSixMonthTargetMetCount(categories, monthsAheadTarget) {
+export async function getSixMonthTargetMetCount(
+  categories,
+  monthsAheadTarget,
+  mthDetailsIn
+) {
   let targetMetCount = 0;
 
   for (let i = 0; i < categories.length; i++) {
     let currCat = categories[i];
     currCat.monthsAhead = 0;
 
-    if (mthDetails.length > 0) {
+    if (mthDetailsIn.length > 0) {
       let monthCat = null;
       if (currCat.categoryAmount > 0) {
         if (currCat.expenseType == "Monthly") {
-          monthCat = mthDetails[0].categories.find(
+          monthCat = mthDetailsIn[0].categories.find(
             (x) =>
               x.category_group_id == currCat.categoryGroupID &&
               x.id == currCat.id
@@ -149,8 +158,8 @@ export async function getSixMonthTargetMetCount(categories, monthsAheadTarget) {
           currCat.monthsAhead =
             Math.floor(monthCat.balance / 1000 / currCat.categoryAmount) - 1;
         } else {
-          for (let j = mthDetails.length - 2; j >= 0; j--) {
-            monthCat = mthDetails[j].categories.find(
+          for (let j = mthDetailsIn.length - 2; j >= 0; j--) {
+            monthCat = mthDetailsIn[j].categories.find(
               (x) =>
                 x.category_group_id == currCat.categoryGroupID &&
                 x.id == currCat.id
@@ -173,7 +182,11 @@ export async function getSixMonthTargetMetCount(categories, monthsAheadTarget) {
   return targetMetCount;
 }
 
-export async function setYnabSixMonthDetails(categoryList, monthsAheadTarget) {
+export async function setYnabSixMonthDetails(
+  categoryList,
+  monthsAheadTarget,
+  myMthDetails = null
+) {
   let sixMoDt = {
     monthsAheadTarget: monthsAheadTarget,
   };
@@ -183,16 +196,18 @@ export async function setYnabSixMonthDetails(categoryList, monthsAheadTarget) {
   for (let i = 0; i < sixCats.length; i++) {
     let currCats = sixCats[i].categories.filter((x) => x.expenseType !== null);
     for (let j = 0; j < currCats.length; j++) {
-      currCats[j].balance = getLatestBalance(currCats[j].id);
+      currCats[j].balance = getLatestBalance(currCats[j].id, myMthDetails);
     }
     newCats.push(...currCats);
   }
 
   sixMoDt.categories = newCats;
 
+  let newMonthDetails = myMthDetails || getMonthDetails();
   sixMoDt.targetMetCount = await getSixMonthTargetMetCount(
     newCats,
-    monthsAheadTarget
+    monthsAheadTarget,
+    newMonthDetails
   );
 
   return { ...sixMoDt };
@@ -392,13 +407,13 @@ async function getYNABBudgetMonths(accToken) {
 
     let newMonthDetails = [];
     for (let i = monthDetails.length - 1; i >= 0; i--) {
-      let ynMonth = new Date(monthDetails[i].month);
+      let ynMonth = parseISO(monthDetails[i].month);
 
       if (
         monthDetails[i].budgeted > 0 ||
         ynMonth.getFullYear() > today.getFullYear() ||
         (ynMonth.getFullYear() == today.getFullYear() &&
-          ynMonth.getMonth() + 1 >= today.getMonth() + 1)
+          ynMonth.getMonth() >= today.getMonth())
       ) {
         newMonthDetails.push(monthDetails[i]);
       }
@@ -512,6 +527,7 @@ export async function getPreloadedData(userEmail, ynabAuthCode, cookies) {
 
   let preUserDetails = {};
   let preAutoRuns = [];
+  let prePastAutoRuns = [];
   let preUserCategories = [];
   let preSixMonthDetails = {};
   let preUpcomingDetails = {};
@@ -522,7 +538,7 @@ export async function getPreloadedData(userEmail, ynabAuthCode, cookies) {
   // If so, let's pull their information directly from the database
   //   This path will handle for a new or existing login user
   if (userEmail) {
-    [preUserDetails, preAutoRuns, preUserCategories] =
+    [preUserDetails, preAutoRuns, prePastAutoRuns, preUserCategories] =
       await getUserDetailsFromDB(userEmail, cookies);
   } else {
     // If there's no email, that means that nobody is logged in currently
@@ -552,16 +568,20 @@ export async function getPreloadedData(userEmail, ynabAuthCode, cookies) {
   [preYNABMonthDetails, preYNABCategories, preUserCategories, preUserDetails] =
     await getYNABDetailsFromAPI(preUserDetails, preUserCategories);
 
-  // console.log("Getting user details from cookies - AFTER YNAB");
-  // console.log(preUserDetails);
+  console.log("Getting user details from cookies - AFTER YNAB");
+  console.log(preUserDetails);
   // console.log(preUserCategories);
+  // console.log(preYNABMonthDetails);
 
   // Pre-calculate the "six month details" using the category details
   // from YNAB and the database above
   preSixMonthDetails = await setYnabSixMonthDetails(
     preUserCategories,
-    preUserDetails.MonthsAheadTarget
+    preUserDetails.MonthsAheadTarget,
+    preYNABMonthDetails
   );
+  console.log("About to send six month details from pre-rendering");
+  console.log(preSixMonthDetails);
 
   // Pre-calculate the "upcoming details" using the category details
   // from YNAB and the database above
@@ -578,6 +598,7 @@ export async function getPreloadedData(userEmail, ynabAuthCode, cookies) {
     props: {
       preUserDetails: preUserDetails,
       preAutoRuns: preAutoRuns,
+      prePastAutoRuns: prePastAutoRuns,
       preUserCategories: preUserCategories,
       preSixMonthDetails: preSixMonthDetails,
       preUpcomingDetails: preUpcomingDetails,
@@ -695,10 +716,12 @@ export function removeCategory(userList, catGroupID, catID) {
 export function getGrandTotal(userList) {
   let newGrandTotal = 0;
   for (let i = 0; i < userList.length; i++) {
-    for (let j = 0; j < userList[i].categories.length; j++) {
-      let catAmt = getCategoryAmountModified(userList[i].categories[j]);
+    if (userList[i].categories) {
+      for (let j = 0; j < userList[i].categories.length; j++) {
+        let catAmt = getCategoryAmountModified(userList[i].categories[j]);
 
-      newGrandTotal += catAmt;
+        newGrandTotal += catAmt;
+      }
     }
   }
 
@@ -760,7 +783,7 @@ export function getFutureAutoDateList(startDate, frequency, numIters) {
   return newAutoRunList;
 }
 
-function getNewListItem(key, id, isParent, isExpanded, props) {
+export function getNewListItem(key, id, isParent, isExpanded, props) {
   return {
     key: key,
     id: id,
@@ -770,7 +793,80 @@ function getNewListItem(key, id, isParent, isExpanded, props) {
   };
 }
 
-export function getCategoryListItems(userCategoryList, monthlyAmount) {
+export function getCategoryListItems(
+  userCategoryList,
+  monthlyAmount,
+  frequency
+) {
+  let listItems = [];
+  let newItem = {};
+  for (let i = 0; i < userCategoryList.length; i++) {
+    let currItem = userCategoryList[i];
+    let groupTotalModified = currItem.categories.reduce((a, b) => {
+      return a + getCategoryAmountModified(b);
+    }, 0);
+
+    newItem = getNewListItem(
+      currItem.id,
+      currItem.id,
+      true,
+      currItem.isExpanded,
+      {
+        category: currItem.name,
+        amount: getMoneyString(groupTotalModified),
+        amountNum: groupTotalModified,
+        percentIncome:
+          (monthlyAmount == 0
+            ? 0
+            : Math.round((groupTotalModified / monthlyAmount) * 100)) + "%",
+        isRegular: null,
+        isUpcoming: null,
+        fullCategory: null,
+      }
+    );
+    listItems.push(newItem);
+
+    for (let j = 0; j < currItem.categories.length; j++) {
+      let currCat = currItem.categories[j];
+      let catAmtMod = getCategoryAmountModified(currCat);
+      // catAmtMod = getAmountByFrequency(catAmtMod, frequency);
+      let showOther = currCat.categoryAmount !== catAmtMod;
+
+      newItem = getNewListItem(
+        currCat.id,
+        currCat.id,
+        false,
+        currItem.isExpanded,
+        {
+          category: currCat.name,
+          amount: !showOther
+            ? getMoneyString(catAmtMod, 2)
+            : getMoneyString(catAmtMod, 2) +
+              " / (" +
+              getMoneyString(currCat.categoryAmount) +
+              ")",
+          amountNum: showOther ? catAmtMod : currCat.categoryAmount,
+          percentIncome:
+            (monthlyAmount == 0
+              ? 0
+              : (catAmtMod / monthlyAmount) * 100
+            ).toFixed(2) + "%",
+          isRegular: currCat.expenseType !== null,
+          isUpcoming: currCat.upcomingExpense !== null,
+          fullCategory: currCat,
+        }
+      );
+      listItems.push(newItem);
+    }
+  }
+  return listItems;
+}
+
+export function getCategoryListItemsWithMonths(
+  userCategoryList,
+  monthlyAmount,
+  frequency
+) {
   let listItems = [];
   let newItem = {};
   for (let i = 0; i < userCategoryList.length; i++) {
@@ -829,6 +925,24 @@ export function getCategoryListItems(userCategoryList, monthlyAmount) {
         }
       );
       listItems.push(newItem);
+
+      console.log("Getting MonthDetails");
+      let mthAmtDetails = getMonthAmountDetailsFromYNAB(currCat, frequency);
+      console.log("MonthDetails", mthAmtDetails);
+
+      for (let i = 0; i < mthAmtDetails.length; i++) {
+        newItem = getNewListItem(
+          currCat.id + i.toString(),
+          currCat.id,
+          false,
+          false,
+          {
+            month: mthAmtDetails[i].month,
+            amountNum: mthAmtDetails[i].postAmount,
+          }
+        );
+        listItems.push(newItem);
+      }
     }
   }
   return listItems;
@@ -1119,6 +1233,28 @@ export function getCategoryAmountModified(cat) {
 
   newAmt += cat.extraAmount || 0;
 
+  if (newAmt % 1 > 0) {
+    newAmt += 0.01;
+  }
+
+  return newAmt;
+}
+
+export function getCategoryAmountModifiedWithoutExtra(cat) {
+  if (cat.includeOnChart == 0) {
+    return 0;
+  }
+
+  let newAmt = cat.categoryAmount;
+
+  if (cat.expenseType && cat.expenseType == "By Date") {
+    newAmt /= cat.expenseMonthsDivisor;
+  }
+
+  if (newAmt % 1 > 0) {
+    newAmt += 0.01;
+  }
+
   return newAmt;
 }
 
@@ -1132,6 +1268,129 @@ export function getAmountByFrequency(amt, freq) {
   }
 }
 
+export function getMonthAmountDetailsFromYNAB(categoryIn, freq) {
+  let category = { ...categoryIn };
+  let monthAmountDetails = [];
+
+  let totalAmtToPost = getCategoryAmountModified(category);
+  totalAmtToPost = getAmountByFrequency(totalAmtToPost, freq);
+
+  // console.log("category", category);
+
+  // console.log("This is what I have to work with to start: ", totalAmtToPost);
+
+  let ynabMonths = getMonthDetails();
+
+  let foundStartMonth = false;
+  for (let i = 0; i < ynabMonths.length; i++) {
+    let ynMonth = parseISO(ynabMonths[i].month);
+    let ynMonthCat = null;
+    if (category.useCurrentMonth) {
+      ynMonthCat = ynabMonths[0].categories.find((x) => x.id == category.id);
+      ynMonth = parseISO(ynabMonths[0].month);
+    } else {
+      ynMonthCat = ynabMonths[i].categories.find((x) => x.id == category.id);
+      ynMonth = parseISO(ynabMonths[i].month);
+    }
+    // console.log("Curr Month Category");
+    // console.log(ynMonthCat);
+
+    let totalDesiredMonthAmt = getCategoryAmountModifiedWithoutExtra(category); //.categoryAmount;
+    // console.log("totalDesiredMonthAmt", totalDesiredMonthAmt);
+
+    // If we find a month and we haven't reached the amount needed
+    // for that month, we should use that month. Otherwise, we should skip
+    // to the next month.
+    // console.log({
+    //   foundStartMonth: foundStartMonth,
+    //   useCurrentMonth: category.useCurrentMonth,
+    //   expenseType: category.expenseType,
+    //   currently_budgeted_amount: ynMonthCat.budgeted / 1000,
+    //   totalDesiredMonthAmtCheck: totalDesiredMonthAmt,
+    // });
+
+    let monthNeedsFunding = ynMonthCat.budgeted / 1000 < totalDesiredMonthAmt;
+    if (
+      foundStartMonth ||
+      category.expenseType == null ||
+      category.useCurrentMonth ||
+      monthNeedsFunding
+    ) {
+      foundStartMonth = true;
+
+      // console.log(
+      //   "Month: ",
+      //   ynMonth
+      //     .toLocaleString("default", { month: "long" })
+      //     .substring(0, 3)
+      //     .toUpperCase() +
+      //     " " +
+      //     ynMonth.getFullYear()
+      // );
+
+      // Then, once we have a handle on that month, we should figure out
+      // the amount that needs to be posted for that month
+      let amtCurrBudgeted = ynMonthCat.budgeted / 1000;
+      // console.log("amtCurrBudgeted", amtCurrBudgeted);
+      let amtToPost =
+        totalDesiredMonthAmt -
+        (category.useCurrentMonth == 1 ? 0 : amtCurrBudgeted);
+
+      if (amtToPost > totalAmtToPost) {
+        amtToPost = totalAmtToPost;
+      }
+
+      // console.log("amtToPost", amtToPost);
+
+      let monthStr =
+        ynMonth
+          .toLocaleString("default", { month: "long" })
+          .substring(0, 3)
+          .toUpperCase() +
+        " " +
+        ynMonth.getFullYear();
+      if (Math.round(amtToPost * 100) / 100 > 0) {
+        let ex = monthAmountDetails.find((x) => x.month == monthStr);
+        if (ex) {
+          ex.postAmount += amtToPost;
+        } else {
+          monthAmountDetails.push({
+            month: monthStr,
+            postAmount: amtToPost,
+          });
+        }
+
+        let catExpDate = new Date(category.expenseDate);
+        catExpDate.setDate(1);
+        catExpDate.setHours(0, 0, 0, 0);
+
+        if (ynMonth.toISOString() == catExpDate.toISOString()) {
+          category.expenseMonthsDivisor =
+            category.repeatFreqType == "Years"
+              ? category.repeatFreqNum * 12
+              : category.repeatFreqNum;
+        }
+        // console.log("ynMonth", ynMonth.toISOString());
+        // console.log("expenseDate", catExpDate.toISOString());
+
+        // Then, subtract that amount from the starting amount.
+        totalAmtToPost -= amtToPost;
+        // console.log("TotalAmtToPost left: ", totalAmtToPost);
+
+        // If we still have some money left over, move onto the next month
+        // and do the same thing
+        if (totalAmtToPost <= 0) {
+          // console.log("NO MONEY LEFT OVER. SHOULD EXIT!");
+          // console.log(monthAmountDetails);
+          break;
+        }
+      }
+    }
+  }
+
+  return monthAmountDetails;
+}
+
 var mthDetails = {};
 export function setMonthDetails(monthDetails) {
   mthDetails = monthDetails;
@@ -1141,9 +1400,10 @@ export function getMonthDetails() {
   return mthDetails;
 }
 
-export function getLatestBalance(catID) {
-  if (mthDetails && mthDetails.length > 0) {
-    let ynabCat = mthDetails[0]?.categories.find((x) => x.id == catID);
+export function getLatestBalance(catID, myMthDetails = null) {
+  let mthDetailsIn = myMthDetails || getMonthDetails();
+  if (mthDetailsIn && mthDetailsIn.length > 0) {
+    let ynabCat = mthDetailsIn[0]?.categories.find((x) => x.id == catID);
     return ynabCat["balance"] == 0 ? 0 : ynabCat["balance"] / 1000;
   }
   return 0;
