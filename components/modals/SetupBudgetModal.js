@@ -80,7 +80,8 @@ function SetupBudgetModal(props) {
   const postCategoryAmountToYNAB = async (
     currAccToken,
     currRefToken,
-    monthToSave
+    monthToSave,
+    foundDivisorChanged
   ) => {
     // Get the amount to post to YNAB for this month/category
     let monthAmt = monthToSave.totalAmount.replace("$", "");
@@ -148,7 +149,7 @@ function SetupBudgetModal(props) {
       });
     }
 
-    return [currAccToken, currRefToken];
+    return [currAccToken, currRefToken, foundDivisorChanged];
   };
 
   const saveToYNAB = async () => {
@@ -156,7 +157,7 @@ function SetupBudgetModal(props) {
     let currRefToken = props.userDetails.RefreshToken;
 
     let parentItems = setupCategories.filter((x) => x.isParent);
-    var foundDivisorChanged = false;
+    let foundDivisorChanged = false;
     for (let i = 0; i < parentItems.length; i++) {
       let catTotalAmt = parseInt(parentItems[i].totalAmount.replace("$", ""));
       if (catTotalAmt > 0) {
@@ -180,11 +181,13 @@ function SetupBudgetModal(props) {
               ")"
           );
 
-          [currAccToken, currRefToken] = await postCategoryAmountToYNAB(
-            currAccToken,
-            currRefToken,
-            monthsToSave[j]
-          );
+          [currAccToken, currRefToken, foundDivisorChanged] =
+            await postCategoryAmountToYNAB(
+              currAccToken,
+              currRefToken,
+              monthsToSave[j],
+              foundDivisorChanged
+            );
         }
       }
     }
