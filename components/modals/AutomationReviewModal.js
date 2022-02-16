@@ -62,12 +62,19 @@ function AutomationReviewModal(props) {
               Next Auto Run(s)
             </div>
           </div>
+
           <div>
             <div
               onClick={() => {
-                props.setShowPastRuns(true);
+                if (props.pastAutoRuns.length > 0) {
+                  props.setShowPastRuns(true);
+                }
               }}
-              className="font-bold flex p-1 hover:underline hover:cursor-pointer hover:bg-blue-400 hover:text-white hover:rounded-md"
+              className={`font-bold flex p-1 hover:underline ${
+                props.pastAutoRuns.length == 0
+                  ? "hover:bg-gray-400 hover:cursor-not-allowed"
+                  : "hover:bg-blue-400 hover:cursor-pointer"
+              } hover:text-white hover:rounded-md`}
             >
               <ClockIcon className="h-6 w-6 mr-1" />
               <p>See Past Runs</p>
