@@ -85,6 +85,9 @@ function SetupBudgetModal(props) {
     // Get the amount to post to YNAB for this month/category
     let monthAmt = monthToSave.totalAmount.replace("$", "");
 
+    console.log("postCategoryAmountToYNAB");
+    console.log("monthAmt", monthAmt);
+
     // POST/PATCH the information to the YNAB API to update the budgeted amount
     // for the given category
     // If we exceed our pre-defined YNAB rate-limit threshold, we'll request a new
@@ -111,6 +114,8 @@ function SetupBudgetModal(props) {
         console.log("Error posting amounts to YNAB");
         console.log(err);
       });
+
+    console.log("Posted amount to category in YNAB!");
 
     // If we are on a month where the expenseMonthsDivisor changed (aka, new year/repeat),
     // update that field in the database
@@ -142,6 +147,8 @@ function SetupBudgetModal(props) {
         CategoryID: monthToSave.id,
       });
     }
+
+    return [currAccToken, currRefToken];
   };
 
   const saveToYNAB = async () => {
