@@ -25,7 +25,7 @@ function Header({ isConnectedToYNAB }) {
 
       <Sidebar
         sidebar={<MySidebar isConnectedToYNAB={isConnectedToYNAB} />}
-        children={<div></div>}
+        // children={<div></div>}
         open={sidebarOpen}
         onSetOpen={setSidebarOpen}
         styles={sidebarStyles}
