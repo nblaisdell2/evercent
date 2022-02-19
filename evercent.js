@@ -166,8 +166,6 @@ export async function getSixMonthTargetMetCount(
                 x.category_group_id == currCat.categoryGroupID &&
                 x.id == currCat.id
             );
-            console.log("Checking currCat", currCat);
-            console.log("monthCat", monthCat);
 
             let catAmt = currCat.categoryAmount / currCat.expenseMonthsDivisor;
             if (monthCat.budgeted / 1000 >= catAmt) {
