@@ -65,7 +65,7 @@ function AutomationModal(props) {
       // Since we're reading a date from the database, we need to treat it as UTC,
       // rather than normal like above
       numIters = 10;
-      dtWithTime = treatAsUTC(props.userDetails.NextPaydate);
+      dtWithTime = new Date(props.userDetails.NextPaydate);
     }
 
     // Then, normalize the date by removing the minute, second, millisecond portions
@@ -91,10 +91,10 @@ function AutomationModal(props) {
       props.userDetails.PayFrequency,
       numIters
     );
-    console.log(
-      "useEffect for showReview - what is newAutoRunList?",
-      newAutoRunList
-    );
+    // console.log(
+    //   "useEffect for showReview - what is newAutoRunList?",
+    //   newAutoRunList
+    // );
     setTempAutoRuns(newAutoRunList);
   };
 
