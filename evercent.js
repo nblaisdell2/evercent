@@ -412,7 +412,6 @@ async function getYNABBudgetMonths(accToken) {
       let ynMonth = parseISO(monthDetails[i].month);
 
       if (
-        monthDetails[i].budgeted > 0 ||
         ynMonth.getFullYear() > today.getFullYear() ||
         (ynMonth.getFullYear() == today.getFullYear() &&
           ynMonth.getMonth() >= today.getMonth())
@@ -487,7 +486,6 @@ export async function getOrderedCategoryList(userCategoryList, ynabList) {
   for (let i = 0; i < ynabList.length; i++) {
     let savedGroup = userCategoryList.find((x) => x.id == ynabList[i].id);
     if (savedGroup) {
-      console.log("Saved Group? ", savedGroup);
       orderedCatList = [];
 
       for (let j = 0; j < ynabList[i].categories.length; j++) {
