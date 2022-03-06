@@ -12,7 +12,7 @@ function useBudgetCategory(categoryIn) {
   );
 
   const [expenseDate, setExpenseDate] = useState(
-    categoryIn.expenseDate ? parseISO(categoryIn.expenseDate) : null
+    categoryIn.expenseDate ? parseISO(categoryIn.expenseDate) : new Date()
   );
 
   const UpdateType = {
@@ -133,19 +133,23 @@ function useBudgetCategory(categoryIn) {
     newCat.expenseType = expenseType;
 
     let newExpenseDate = null;
-    if (newCat.expenseType == "By Date") {
-      newExpenseDate = new Date();
-      newCat.expenseMonthsDivisor = 1;
-      newCat.repeatFreqNum = 1;
-      newCat.repeatFreqType = "Months";
-    } else {
-      newExpenseDate = null;
-      newCat.expenseMonthsDivisor = null;
-      newCat.repeatFreqNum = null;
-      newCat.repeatFreqType = null;
-    }
+    // if (newCat.expenseType == "By Date") {
+    //   newExpenseDate = new Date();
+    //   newCat.expenseMonthsDivisor = 1;
+    //   newCat.repeatFreqNum = 1;
+    //   newCat.repeatFreqType = "Months";
+    // } else {
+    //   newExpenseDate = new Date();
+    //   newCat.expenseMonthsDivisor = null;
+    //   newCat.repeatFreqNum = null;
+    //   newCat.repeatFreqType = null;
+    // }
+    // newExpenseDate = new Date();
+    newCat.expenseMonthsDivisor = 1;
+    newCat.repeatFreqNum = 1;
+    newCat.repeatFreqType = "Months";
 
-    newCat.expenseDate = newExpenseDate ? newExpenseDate.toISOString() : null;
+    // newCat.expenseDate = newExpenseDate.toISOString();
     setExpenseDate(newCat.expenseDate);
 
     setCategory(newCat);

@@ -3,13 +3,14 @@ import ArrowLeft from "@heroicons/react/outline/ArrowLeftIcon";
 
 import DateTimePicker from "../util/DateTimePicker";
 import NumberInput from "../util/NumberInput";
-import MyCheckbox from "../util/MyCheckbox";
+// import MyCheckbox from "../util/MyCheckbox";
 import MyDropdown from "../util/MyDropdown";
 
 import { replaceCategory } from "../../evercent";
 import useBudgetCategory from "../../hooks/useBudgetCategory";
 
 import MySlider from "../util/MySlider";
+import MyToggleSwitch from "../util/MyToggleSwitch";
 
 function BudgetCategoryInfo(props) {
   const [category, showUpcoming, showRegular, UpdateType, updateCategory] =
@@ -38,6 +39,9 @@ function BudgetCategoryInfo(props) {
           props.userDetails.MonthlyAmount) *
         100;
 
+  console.log("AMOUNT PERCENT", amountPercent);
+  console.log("what is the expense date?", category.expenseDate);
+
   return (
     <div>
       {/* Back Arrow */}
@@ -55,7 +59,7 @@ function BudgetCategoryInfo(props) {
         <h2>{category.name}</h2>
       </div>
 
-      <div className="h-[500px] overflow-y-auto">
+      <div className="h-[600px] overflow-y-auto">
         {/* Category Amounts & Slider */}
         <div className="flex justify-evenly rounded-2xl border border-gray-500 bg-gray-200 p-1 items-center">
           {/* Category Amount (direct) */}
@@ -110,21 +114,104 @@ function BudgetCategoryInfo(props) {
           <h2 className="text-center font-semibold">OPTIONS</h2>
 
           <div className="flex justify-evenly">
-            <MyCheckbox
-              label={"Upcoming Expense"}
-              checked={showUpcoming}
-              onClick={() => updateCategory(UpdateType.UPCOMING_EXPENSE)()}
-            />
-
-            <MyCheckbox
+            <MyToggleSwitch
               label={"6 Months Expense"}
               checked={showRegular}
               onClick={() =>
                 updateCategory(UpdateType.REGULAR_EXPENSE_DETAILS)()
               }
             />
+
+            <MyToggleSwitch
+              label={"Upcoming Expense"}
+              checked={showUpcoming}
+              onClick={() => updateCategory(UpdateType.UPCOMING_EXPENSE)()}
+            />
           </div>
         </div>
+
+        {/* Regular Expenses section */}
+        {showRegular && (
+          <div className="mt-5  rounded-2xl border border-gray-500 bg-gray-200 p-1">
+            <h2 className="text-center font-semibold">REGULAR EXPENSE</h2>
+
+            {/* Row 1 */}
+            <div className="flex justify-evenly my-3">
+              <div className="flex flex-col items-center">
+                <label className="font-medium text-sm mb-1">Frequency</label>
+                <MyDropdown
+                  value={category.expenseType}
+                  options={["Monthly", "By Date"]}
+                  onChange={(newType) =>
+                    updateCategory(UpdateType.EXPENSE_TYPE)(newType)
+                  }
+                />
+              </div>
+
+              <div className="flex flex-col items-center">
+                <label className="font-medium text-sm mb-1">
+                  Next Due Date
+                </label>
+                <DateTimePicker
+                  autoDate={category.expenseDate}
+                  setAutoDate={updateCategory(UpdateType.EXPENSE_DATE)}
+                />
+              </div>
+
+              <div className="flex justify-between">
+                <div className="flex flex-col items-center ml-5">
+                  <label className="font-medium text-sm mb-1">
+                    Repeat Every?
+                  </label>
+                  <div className="flex justify-between">
+                    <MyDropdown
+                      value={category.repeatFreqNum}
+                      options={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]}
+                      onChange={(newVal) => {
+                        updateCategory(UpdateType.EXPENSE_FREQ_NUM)(newVal);
+                      }}
+                      disabled={category.expenseType == "Monthly"}
+                    />
+                    <div className="mx-2"></div>
+                    <MyDropdown
+                      value={category.repeatFreqType}
+                      options={["Months", "Years"]}
+                      onChange={(newVal) => {
+                        updateCategory(UpdateType.EXPENSE_FREQ_TYPE)(newVal);
+                      }}
+                      disabled={category.expenseType == "Monthly"}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Row 2 */}
+            <div className="flex justify-center">
+              <div className="flex justify-evenly items-center w-full">
+                <MyToggleSwitch
+                  label={"Include on Chart?"}
+                  checked={category.includeOnChart}
+                  onClick={() => updateCategory(UpdateType.TOGGLE_ON_CHART)()}
+                />
+                {/* <MyCheckbox
+                    label={"Toggle Include?"}
+                    checked={category.toggleInclude}
+                    onClick={() =>
+                      updateCategory(UpdateType.TOGGLE_TOGGLE_INCLUDE)()
+                    }
+                  /> */}
+                <MyToggleSwitch
+                  label={"Always Use Current Month?"}
+                  checked={category.useCurrentMonth}
+                  onClick={() =>
+                    updateCategory(UpdateType.TOGGLE_ALWAYS_CURRENT)()
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Upcoming Expenses section */}
         {showUpcoming && (
@@ -141,80 +228,6 @@ function BudgetCategoryInfo(props) {
                 }}
               />
             </div>
-          </div>
-        )}
-
-        {/* Regular Expenses section */}
-        {showRegular && (
-          <div className="mt-5  rounded-2xl border border-gray-500 bg-gray-200 p-1">
-            <h2 className="text-center font-semibold">REGULAR EXPENSE</h2>
-
-            {/* Row 1 */}
-            <div className="flex justify-evenly my-3">
-              <MyDropdown
-                value={category.expenseType}
-                options={["Monthly", "By Date"]}
-                onChange={(newType) =>
-                  updateCategory(UpdateType.EXPENSE_TYPE)(newType)
-                }
-              />
-              <MyCheckbox
-                label={"Include on Chart?"}
-                checked={category.includeOnChart}
-                onClick={() => updateCategory(UpdateType.TOGGLE_ON_CHART)()}
-              />
-              {/* <MyCheckbox
-                label={"Toggle Include?"}
-                checked={category.toggleInclude}
-                onClick={() =>
-                  updateCategory(UpdateType.TOGGLE_TOGGLE_INCLUDE)()
-                }
-              /> */}
-              <MyCheckbox
-                label={"Always Use Current Month?"}
-                checked={category.useCurrentMonth}
-                onClick={() =>
-                  updateCategory(UpdateType.TOGGLE_ALWAYS_CURRENT)()
-                }
-              />
-            </div>
-
-            {/* Row 2 */}
-            {category.expenseType == "By Date" && (
-              <div className="flex justify-center">
-                <div className="flex justify-evenly items-center w-full">
-                  <DateTimePicker
-                    autoDate={category.expenseDate}
-                    setAutoDate={updateCategory(UpdateType.EXPENSE_DATE)}
-                  />
-                  <MyCheckbox
-                    label={"Repeat?"}
-                    checked={category.repeatFreqNum !== null}
-                    onClick={() =>
-                      updateCategory(UpdateType.TOGGLE_EXPENSE_REPEAT)
-                    }
-                  />
-                  {category.repeatFreqNum !== null && (
-                    <>
-                      <MyDropdown
-                        value={category.repeatFreqNum}
-                        options={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]}
-                        onChange={(newVal) => {
-                          updateCategory(UpdateType.EXPENSE_FREQ_NUM)(newVal);
-                        }}
-                      />
-                      <MyDropdown
-                        value={category.repeatFreqType}
-                        options={["Months", "Years"]}
-                        onChange={(newVal) => {
-                          updateCategory(UpdateType.EXPENSE_FREQ_TYPE)(newVal);
-                        }}
-                      />
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>

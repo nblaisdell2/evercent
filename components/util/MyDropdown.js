@@ -1,9 +1,10 @@
 import React from "react";
 
-function MyDropdown({ value, options, onChange, className }) {
+function MyDropdown({ value, options, onChange, disabled, className }) {
   return (
     <div>
       <select
+        disabled={disabled}
         className={!className ? "border border-black" : className}
         onChange={(e) => {
           onChange(e.target.value);

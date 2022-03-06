@@ -1,3 +1,41 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* The following CSS is used for the toggle switch components in my code, which can be found and is used 
+   in MyToggleSwitch.js.
+
+   This CSS was pulled directly from "../node_modules/react-toggle-switch/dist/css/switch.min.css"
+   so that I could directly alter the CSS in my site.
+
+   This library was found here: https://www.npmjs.com/package/react-toggle-switch
+*/
+.switch {
+  border: 1px solid #bbb;
+  width: 50px;
+  height: 26px;
+  border-radius: 13px;
+  cursor: pointer;
+  display: inline-block;
+  background-color: #ccc;
+}
+.switch-toggle {
+  border: 1px solid #999;
+  box-shadow: 1px 1px 1px #ccc;
+  width: 25px;
+  height: 24px;
+  left: 0;
+  border-radius: 12px;
+  background: #fff;
+  position: relative;
+  transition: left 0.2s ease-in-out;
+}
+.switch.on {
+  background: #5e72e4;
+}
+.switch.on .switch-toggle {
+  left: 23px;
+}
+.switch.disabled {
+  cursor: not-allowed;
+}

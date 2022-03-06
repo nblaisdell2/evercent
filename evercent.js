@@ -12,6 +12,7 @@ import {
 
 import * as ynab from "./ynab";
 import data from "./data.json";
+import { parse } from "date-fns";
 
 // **************************
 //   User Details Functions
@@ -150,13 +151,12 @@ export async function getSixMonthTargetMetCount(
     if (mthDetailsIn.length > 0) {
       let monthCat = null;
       if (currCat.categoryAmount > 0) {
-        if (currCat.expenseType == "Monthly") {
+        if (currCat.expenseType == "Monthly" && currCat.useCurrentMonth) {
           monthCat = mthDetailsIn[mthDetailsIn.length - 1].categories.find(
             (x) =>
               x.category_group_id == currCat.categoryGroupID &&
               x.id == currCat.id
           );
-
           currCat.monthsAhead =
             Math.floor(monthCat.balance / 1000 / currCat.categoryAmount) - 1;
         } else {
@@ -167,11 +167,54 @@ export async function getSixMonthTargetMetCount(
                 x.id == currCat.id
             );
 
-            let catAmt = currCat.categoryAmount / currCat.expenseMonthsDivisor;
+            let catAmt = currCat.categoryAmount;
+            if (currCat.expenseType == "By Date") {
+              catAmt /= currCat.expenseMonthsDivisor;
+            }
+
             if (monthCat.budgeted / 1000 >= catAmt) {
               currCat.monthsAhead += 1;
             }
           }
+          // if (currCat.expenseType == "Monthly") {
+          //   for (let j = mthDetailsIn.length - 2; j >= 1; j--) {
+          //     monthCat = mthDetailsIn[j].categories.find(
+          //       (x) =>
+          //         x.category_group_id == currCat.categoryGroupID &&
+          //         x.id == currCat.id
+          //     );
+
+          //     let catAmt = currCat.categoryAmount;
+          //     if (currCat.expenseType == "By Date") {
+          //       catAmt /= currCat.expenseMonthsDivisor;
+          //     }
+
+          //     if (monthCat.budgeted / 1000 >= catAmt) {
+          //       currCat.monthsAhead += 1;
+          //     }
+          //   }
+          //   // monthCat = mthDetailsIn[mthDetailsIn.length - 1].categories.find(
+          //   //   (x) =>
+          //   //     x.category_group_id == currCat.categoryGroupID &&
+          //   //     x.id == currCat.id
+          //   // );
+
+          //   // currCat.monthsAhead =
+          //   //   Math.floor(monthCat.balance / 1000 / currCat.categoryAmount) - 1;
+          // } else {
+          //   for (let j = mthDetailsIn.length - 2; j >= 1; j--) {
+          //     monthCat = mthDetailsIn[j].categories.find(
+          //       (x) =>
+          //         x.category_group_id == currCat.categoryGroupID &&
+          //         x.id == currCat.id
+          //     );
+
+          //     let catAmt = currCat.categoryAmount / currCat.expenseMonthsDivisor;
+          //     if (monthCat.budgeted / 1000 >= catAmt) {
+          //       currCat.monthsAhead += 1;
+          //     }
+          //   }
+          // }
         }
 
         if (currCat.monthsAhead >= monthsAheadTarget) {
@@ -645,6 +688,9 @@ function createCategory(catGroupID, catID, ynabList) {
   let catName = ynabList
     .find((x) => x.id == catGroupID)
     .categories.find((x) => x.id == catID).name;
+  let today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   return {
     id: catID,
     categoryGroupID: catGroupID,
@@ -652,7 +698,7 @@ function createCategory(catGroupID, catID, ynabList) {
     categoryAmount: 0,
     extraAmount: 0,
     balance: 0,
-    expenseDate: null,
+    expenseDate: today.toISOString(),
     expenseMonthsDivisor: null,
     expenseType: null,
     includeOnChart: true,
@@ -1128,8 +1174,30 @@ export function getSetupCategoriesWithMonths(
 
       let mthYear = new Date().getFullYear();
       let mthMth = new Date().getMonth();
-
       let currMonth = new Date(mthYear, mthMth, 1);
+
+      let dtExpenseDate = new Date(currCat.expenseDate);
+
+      // if month/year is greater than currMonth
+      // OR expenseDate >= today
+      let passedMonth = false;
+      if (
+        !currCat.useCurrentMonth &&
+        currCat.expenseType == "Monthly" &&
+        (dtExpenseDate.getFullYear() > currMonth.getFullYear() ||
+          dtExpenseDate.getMonth() > currMonth.getMonth())
+      ) {
+        mthMth += 1;
+        if (mthMth > 11) {
+          mthMth = 0;
+          mthYear += 1;
+        }
+
+        passedMonth = true;
+
+        currMonth = new Date(mthYear, mthMth, 1);
+      }
+
       let monthArr = [];
       if (currCat.balance > 0 || currCat.monthsAhead > 0) {
         for (let j = 0; j < currCat.monthsAhead; j++) {
@@ -1202,12 +1270,13 @@ export function getSetupCategoriesWithMonths(
         }
       }
 
+      let tempMonthsAhead = currCat.monthsAhead + (passedMonth ? 1 : 0);
       catsWithMonths.push({
         isParent: true,
         isExpanded: isExpanded,
         id: currCat.id,
         name: currCat.name,
-        numMonthsAhead: currCat.monthsAhead <= 0 ? 0 : currCat.monthsAhead - 1,
+        numMonthsAhead: tempMonthsAhead <= 0 ? 0 : tempMonthsAhead - 1,
         totalAmount: getMoneyString(catTotalAmt),
       });
       catsWithMonths.push(...monthArr);
