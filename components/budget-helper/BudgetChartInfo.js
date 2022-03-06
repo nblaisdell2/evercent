@@ -48,7 +48,7 @@ function BudgetChartInfo(props) {
   };
 
   const getNextAutoRunString = (nextRun) => {
-    let dtNextRun = treatAsUTC(new Date(nextRun));
+    let dtNextRun = new Date(nextRun);
     let dtToday = new Date();
 
     let strNextRun = dtNextRun
@@ -56,7 +56,7 @@ function BudgetChartInfo(props) {
       .replace(",", " @")
       .replace(":00:00", "");
 
-    let numDays = daysBetween(dtToday, dtNextRun);
+    let numDays = Math.floor(daysBetween(dtToday, dtNextRun));
     if (numDays.toFixed(0) == 0) {
       strNextRun +=
         " (" + (dtNextRun.getHours() - dtToday.getHours()) + " hours)";
