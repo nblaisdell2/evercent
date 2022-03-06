@@ -63,8 +63,8 @@ function BudgetCategoryInfo(props) {
         {/* Category Amounts & Slider */}
         <div className="flex justify-evenly rounded-2xl border border-gray-500 bg-gray-200 p-1 items-center">
           {/* Category Amount (direct) */}
-          <div className="flex flex-col justify-between p-2 pt-1">
-            <div className="text-center font">Amount</div>
+          <div className="flex flex-col text-center justify-between p-2 pt-1">
+            <div className="font-medium text-sm my-1">Amount</div>
             <div className="flex-grow">
               <NumberInput
                 value={category.categoryAmount}
@@ -75,7 +75,7 @@ function BudgetCategoryInfo(props) {
               />
             </div>
 
-            <div className="text-center font">Extra Amount</div>
+            <div className="font-medium text-sm my-1">Extra Amount</div>
             <div className="flex-grow">
               <NumberInput
                 value={category.extraAmount}
@@ -89,7 +89,7 @@ function BudgetCategoryInfo(props) {
 
           {/* Monthly Income % (slider) */}
           <div className="flex-grow p-2 pt-1 text-center items-center">
-            <div>% of Monthly Income</div>
+            <div className="font-medium text-sm mb-1">% of Monthly Income</div>
 
             <div>
               <MySlider
