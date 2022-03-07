@@ -17,7 +17,11 @@ function SetupBudgetListItem({
   return (
     (isParent && (
       <tr className="cursor-pointer hover:bg-gray-200">
-        <td>
+        <td
+          onClick={() => {
+            toggleCategory(category.name, isExpanded);
+          }}
+        >
           {isExpanded ? (
             <ChevronDownIcon className="h-6 inline" />
           ) : (

@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { parseISO } from "date-fns";
+import {
+  getMonthDetails,
+  getCategoryAmountModifiedWithoutExtra,
+} from "../evercent";
 
 function useBudgetCategory(categoryIn) {
   const [category, setCategory] = useState(categoryIn);
@@ -172,7 +176,35 @@ function useBudgetCategory(categoryIn) {
   const setCategoryExpenseDate = (newExpenseDate) => {
     console.log("HOOK: setCategoryExpenseDate");
     let newCat = getNewCategory("expenseDate", newExpenseDate.toISOString());
-    newCat.expenseMonthsDivisor = monthDiff(new Date(), newExpenseDate) + 1;
+
+    // First, determine what the divisor would be IF we had already passed it
+    // Then, get that modAmount
+    let newDivisor = monthDiff(new Date(), newExpenseDate) + 1;
+    let potentialDivisor =
+      newCat.repeatFreqNum * (newCat.repeatFreqType == "Months" ? 1 : 12);
+
+    newCat.expenseMonthsDivisor = potentialDivisor;
+    let modAmt = getCategoryAmountModifiedWithoutExtra(newCat);
+
+    // Then, check the months list for this category, and see if that modAmount
+    // has already been funded for this month
+    let ynabMonthList = getMonthDetails();
+    console.log(ynabMonthList);
+
+    let monthsFunded = 0;
+    for (let i = 0; i < ynabMonthList.length; ++i) {
+      let monthCat = ynabMonthList[i].categories.find((x) => x.id == newCat.id);
+      if (monthCat.budgeted / 1000 < modAmt) {
+        break;
+      }
+      monthsFunded += 1;
+    }
+
+    // If the number of months funded is greater than the number of months between
+    // the new expense date and today, then we should use the divisor for when it's
+    // already passed. Otherwise, use the divisor between expense date & today.
+    newCat.expenseMonthsDivisor =
+      monthsFunded >= newDivisor ? potentialDivisor : newDivisor;
 
     setExpenseDate(newExpenseDate.toISOString());
 
