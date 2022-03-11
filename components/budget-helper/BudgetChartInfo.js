@@ -56,12 +56,27 @@ function BudgetChartInfo(props) {
       .replace(",", " @")
       .replace(":00:00", "");
 
-    let numDays = Math.floor(daysBetween(dtToday, dtNextRun));
-    if (numDays.toFixed(0) == 0) {
+    let hourDiff =
+      Math.floor(Math.abs(dtNextRun - dtToday) / (60 * 60 * 1000)) + 1;
+    if (hourDiff < 24) {
       strNextRun +=
-        " (" + (dtNextRun.getHours() - dtToday.getHours()) + " hours)";
+        " (" + hourDiff + " " + (hourDiff > 1 ? "hours" : "hour") + ")";
     } else {
-      strNextRun += " (" + numDays.toFixed(0) + " days)";
+      let numDays = Math.floor(hourDiff / 24);
+      let numHours = Math.ceil(hourDiff % 24);
+      if (numDays >= 2) {
+        strNextRun += " (" + numDays + " days)";
+      } else {
+        strNextRun +=
+          " (" +
+          numDays +
+          " " +
+          (numDays > 1 ? "days" : "day") +
+          (numDays >= 1 && numHours > 0
+            ? " & " + numHours + " " + (numHours > 1 ? "hours" : "hour")
+            : "") +
+          ")";
+      }
     }
 
     return strNextRun;
