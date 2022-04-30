@@ -44,7 +44,7 @@ function HelpModal(props) {
           <div>
             <div>
               This is <i>roughly</i> the amount that you would expect to take
-              home from your job in a given month. It shouldn't be an exact
+              home from your job in a given month. It shouldn&apos;t be an exact
               number, and should be slightly rounded down from your actual
               monthly amount, just in case.
             </div>
@@ -166,10 +166,10 @@ function HelpModal(props) {
             <div>
               <div>
                 As you enter all of your categories and their appropriate
-                amounts, what you'll see is a number of colors/categories in the
-                chart, and possibly a final color/category, which represents the
-                amount you still have leftover, after ALL the expenses have been
-                accounted for. And that's every MONTH!!
+                amounts, what you&apos;ll see is a number of colors/categories
+                in the chart, and possibly a final color/category, which
+                represents the amount you still have leftover, after ALL the
+                expenses have been accounted for. And that&apos;s every MONTH!!
               </div>
             </div>
             <br />
@@ -191,9 +191,9 @@ function HelpModal(props) {
             </div>
             <br />
             <div>
-              Once they're added to the list, you can click on the different
-              groups to expand them, and then click on the individual categories
-              to edit the amounts and other options for each one.
+              Once they&apos;re added to the list, you can click on the
+              different groups to expand them, and then click on the individual
+              categories to edit the amounts and other options for each one.
             </div>
             <div>
               <div className="text-2xl font-bold text-center mb-2">
@@ -251,8 +251,8 @@ function HelpModal(props) {
                           This shows the amount this category takes up, and will
                           be reflected on the chart on the left-hand side. As
                           more amounts are added to this list, it will take some
-                          chunk away from what's still available on the chart,
-                          which is your Monthly Income.
+                          chunk away from what&apos;s still available on the
+                          chart, which is your Monthly Income.
                         </div>
                         <br />
                         <div>
@@ -263,12 +263,13 @@ function HelpModal(props) {
                           For example, if you pay $300 for some category every 3
                           months, then the $300 will be adjusted to $100 and
                           look something like <br />
-                          "$100 ($300)".
+                          &quot;$100 ($300)&quot;.
                           <ul className="list-disc list-inside ml-5">
                             <li>
                               The first number (outside of parentheses) is what
-                              will be taken from your monthly income, and that's
-                              what will be shown on the chart for that category.
+                              will be taken from your monthly income, and
+                              that&apos;s what will be shown on the chart for
+                              that category.
                             </li>
                             <li>
                               The second number (in parentheses) is just there
@@ -307,18 +308,18 @@ function HelpModal(props) {
           <div>
             <div>
               This chart will show all of the categories that were marked as a
-              'Regular Expense' and show how close to being 6 months ahead on
-              each of those categories that you are. Once all of the categories
-              have hit the dashed line, then you have officially met the goal of
-              being 6 months ahead on all of your expenses!
+              &apos;Regular Expense&apos; and show how close to being 6 months
+              ahead on each of those categories that you are. Once all of the
+              categories have hit the dashed line, then you have officially met
+              the goal of being 6 months ahead on all of your expenses!
             </div>
             <br />
             <div>
               For this tool, to be considered a month ahead on a category, that
-              category must be "fully-funded" for any months past (
-              <u>and not including</u>) the current month. For example, if it's
-              January, and a category is funded for January, February, and
-              March, that would be considered 2 months ahead.
+              category must be &quot;fully-funded&quot; for any months past (
+              <u>and not including</u>) the current month. For example, if
+              it&apos;s January, and a category is funded for January, February,
+              and March, that would be considered 2 months ahead.
             </div>
           </div>
         );
