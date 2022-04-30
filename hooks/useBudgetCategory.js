@@ -33,6 +33,7 @@ function useBudgetCategory(categoryIn) {
     EXPENSE_FREQ_TYPE: 10,
     EXPENSE_DATE: 11,
     SET_UPCOMING_EXPENSE: 12,
+    TOGGLE_MULTIPLE_TRANSACTIONS: 13,
   };
 
   const getNewCategory = (prop, val) => {
@@ -95,6 +96,19 @@ function useBudgetCategory(categoryIn) {
     let newCat = getNewCategory(
       "useCurrentMonth",
       category.useCurrentMonth == 0 || category.useCurrentMonth == null ? 1 : 0
+    );
+
+    setCategory(newCat);
+  };
+
+  const toggleMultipleTransactions = () => {
+    console.log("HOOK: toggleMultipleTransactions");
+    let newCat = getNewCategory(
+      "multipleTransactions",
+      category.multipleTransactions == 0 ||
+        category.multipleTransactions == null
+        ? 1
+        : 0
     );
 
     setCategory(newCat);
@@ -260,6 +274,9 @@ function useBudgetCategory(categoryIn) {
       case UpdateType.EXPENSE_DATE:
         updName = "EXPENSE_DATE";
         break;
+      case UpdateType.TOGGLE_MULTIPLE_TRANSACTIONS:
+        updName = "TOGGLE_MULTIPLE_TRANSACTIONS";
+        break;
     }
     console.log(
       "HOOK: updateCategory - About to run the following query: " + updName
@@ -287,6 +304,8 @@ function useBudgetCategory(categoryIn) {
         return toggleAlwaysIncludeCurrentMonth;
       case UpdateType.TOGGLE_EXPENSE_REPEAT:
         return toggleExpenseRepeat;
+      case UpdateType.TOGGLE_MULTIPLE_TRANSACTIONS:
+        return toggleMultipleTransactions;
       case UpdateType.EXPENSE_TYPE:
         return setExpenseType;
       case UpdateType.EXPENSE_FREQ_NUM:

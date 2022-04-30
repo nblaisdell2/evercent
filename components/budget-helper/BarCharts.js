@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Chart } from "react-google-charts";
 import { getCategoryAmountModified } from "../../evercent";
+import MyHelpIcon from "../util/MyHelpIcon";
+import data from "../../data.json";
 
 function BarCharts(props) {
   const [currSelectedColumn, setCurrSelectedColumn] = useState(null);
@@ -70,20 +72,22 @@ function BarCharts(props) {
     let rowCols = ["Grouping"];
     let rowData = [""];
 
-    for (let i = 0; i < props.userCategoryList.length; i++) {
-      rowCols.push(props.userCategoryList[i].name);
-      let catAmtGroup = 0;
-      for (let j = 0; j < props.userCategoryList[i].categories.length; j++) {
-        let catAmt = getCategoryAmountModified(
-          props.userCategoryList[i].categories[j]
-        );
-        catAmtGroup += catAmt;
+    if (props.userCategoryList && props.userCategoryList.length > 0) {
+      for (let i = 0; i < props.userCategoryList.length; i++) {
+        rowCols.push(props.userCategoryList[i].name);
+        let catAmtGroup = 0;
+        for (let j = 0; j < props.userCategoryList[i].categories.length; j++) {
+          let catAmt = getCategoryAmountModified(
+            props.userCategoryList[i].categories[j]
+          );
+          catAmtGroup += catAmt;
+        }
+        rowData.push(catAmtGroup);
       }
-      rowData.push(catAmtGroup);
     }
 
     rowCols.push("Unused");
-    rowData.push(props.userDetails.MonthlyAmount - props.grandTotal);
+    rowData.push(props.userDetails?.MonthlyAmount - props.grandTotal);
 
     data.push(rowCols, rowData);
     return data;
@@ -95,39 +99,55 @@ function BarCharts(props) {
     let rowData = [""];
 
     let anySelected =
-      props.userCategoryList.filter((x) => x.name == currSelectedColumn)
+      props.userCategoryList?.filter((x) => x.name == currSelectedColumn)
         .length > 0;
-    for (let i = 0; i < props.userCategoryList.length; i++) {
-      if (
-        !anySelected ||
-        props.userCategoryList[i].name == currSelectedColumn
-      ) {
-        for (let j = 0; j < props.userCategoryList[i].categories.length; j++) {
-          rowCols.push(props.userCategoryList[i].categories[j].name);
-          let catAmt = getCategoryAmountModified(
-            props.userCategoryList[i].categories[j]
-          );
-          rowData.push(catAmt);
+    if (props.userCategoryList && props.userCategoryList.length > 0) {
+      for (let i = 0; i < props.userCategoryList.length; i++) {
+        if (
+          !anySelected ||
+          props.userCategoryList[i].name == currSelectedColumn
+        ) {
+          for (
+            let j = 0;
+            j < props.userCategoryList[i].categories.length;
+            j++
+          ) {
+            rowCols.push(props.userCategoryList[i].categories[j].name);
+            let catAmt = getCategoryAmountModified(
+              props.userCategoryList[i].categories[j]
+            );
+            rowData.push(catAmt);
+          }
         }
       }
     }
 
     if (!anySelected) {
       rowCols.push("Unused");
-      rowData.push(props.userDetails.MonthlyAmount - props.grandTotal);
+      rowData.push(props.userDetails?.MonthlyAmount - props.grandTotal);
     }
     data.push(rowCols, rowData);
 
     return data;
   };
 
-  if (props.userDetails.MonthlyAmount == 0) {
+  if (props.userDetails?.MonthlyAmount == 0) {
     return <div></div>;
   }
 
   return (
     <div className="text-center h-[530px]">
-      <div className="mt-10">
+      <div className="mt-12">
+        {!props.forHelp && (
+          <div className="flex justify-center items-center">
+            <MyHelpIcon
+              sizeInPx={35}
+              helpModal={data.Modals.HELP_BUDGET_CHART_DETAILS}
+            />
+            <div className="font-bold text-2xl">Budget Amounts per Month</div>
+          </div>
+        )}
+
         <Chart
           chartType="BarChart"
           data={chartDataGroup()}

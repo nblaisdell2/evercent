@@ -158,24 +158,6 @@ function AutomationPastRunsModal(props) {
   //     setSelectedCatIDs(newCatIDs);
   //   };
 
-  // TODO: I'm trying to finish up the "Past Runs" view, which right now involves me
-  //       being able to re-create the same view that I'm using on the AutomationReviewModal
-  //       for the categories and the amounts being applied to each month for a given paycheck.
-
-  //       The problem is that I'm determining the format of that list "myListItems", based on the
-  //       current results in YNAB, which I won't be able to get for past runs. I'll need to store
-  //       the results properly in the database, and then I can pull them back out in the proper
-  //       format in here, and then use the data to display it.
-
-  //       In the AWS Lambda function which does the automation, I'll need to make sure that it's
-  //       using the appropriate logic for calculating the correct amounts per month.
-  //          (Check out getMonthAmountDetailsFromYNAB and make sure the lambda function is using the same logic)
-  //       Then, make sure as part of the function, we are storing the run details into a table
-  //       in the database.
-
-  //       Once the data has been loaded into the database, we can pull it out of the database during
-  //       the pre-rendering stage, format it to match the data in myListItems, and then load it here.
-
   return (
     <div className="h-[600px] flex flex-col mt-1 m-5 relative">
       {/* Header */}

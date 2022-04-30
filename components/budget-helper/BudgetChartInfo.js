@@ -5,8 +5,8 @@ import CollapsibleTable from "../util/CollapsibleTable";
 import MyModal from "../util/MyModal";
 import data from "../../data.json";
 
-import { daysBetween, treatAsUTC } from "../../utils";
 import BudgetCategoryInfo from "./BudgetCategoryInfo";
+import MyHelpIcon from "../util/MyHelpIcon";
 
 function BudgetChartInfo(props) {
   const [currModal, setCurrModal] = useState(null);
@@ -115,7 +115,13 @@ function BudgetChartInfo(props) {
     <div>
       {/* Title & Save Button */}
       <div className="flex justify-between">
-        <h1 className="font-bold text-2xl underline">Budget Categories</h1>
+        <div className="flex justify-center items-center">
+          <MyHelpIcon
+            sizeInPx={35}
+            helpModal={data.Modals.HELP_BUDGET_CATEGORIES}
+          />
+          <h1 className="font-bold text-2xl underline">Budget Categories</h1>
+        </div>
 
         {props.userDetails.UnsavedChanges && (
           <div

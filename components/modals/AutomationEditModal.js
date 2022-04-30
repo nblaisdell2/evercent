@@ -1,14 +1,21 @@
 import DateTimePicker from "../util/DateTimePicker";
 import MyDropdown from "../util/MyDropdown";
+import MyHelpIcon from "../util/MyHelpIcon";
 import MyRadioButton from "../util/MyRadioButton";
+import data from "../../data.json";
 
 function AutomationEditModal(props) {
-  // TODO: The DateTimePicker in the AutomationEditModal needs to only allow for DateTimes
-  //       that haven't already passed. Currently, I'm able to select a date/time in the past.
-
   return (
     <div className="h-[600px] flex flex-col m-5 relative">
-      <div className="text-center text-2xl">Budget Automation Setup</div>
+      <div className="flex justify-center items-center">
+        <MyHelpIcon
+          sizeInPx={30}
+          helpModal={data.Modals.HELP_AUTOMATION_SETUP}
+        />
+        <div className="text-center text-2xl font-bold">
+          Budget Automation Setup
+        </div>
+      </div>
 
       <div className="flex justify-around items-center mt-5">
         <MyRadioButton

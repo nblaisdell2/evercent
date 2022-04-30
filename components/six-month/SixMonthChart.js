@@ -1,4 +1,6 @@
 import { Chart } from "react-google-charts";
+import MyHelpIcon from "../util/MyHelpIcon";
+import data from "../../data.json";
 
 function SixMonthChart(props) {
   const options = {
@@ -72,8 +74,11 @@ function SixMonthChart(props) {
 
   return (
     <>
-      <div className="text-center font-bold  text-2xl mb-3">
-        Regular Expenses
+      <div className="flex justify-center items-center">
+        <MyHelpIcon sizeInPx={35} helpModal={data.Modals.HELP_REG_EXPENSES} />
+        <div className="text-center font-bold text-2xl">
+          Regular Expenses Progress
+        </div>
       </div>
 
       <div className="h-[550px] overflow-y-auto mt-10">

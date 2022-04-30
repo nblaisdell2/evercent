@@ -26,7 +26,8 @@ function AutomationReviewModal(props) {
   let myListItems = getCategoryListItemsWithMonths(
     props.userCategoryList,
     props.userDetails.MonthlyAmount,
-    props.userDetails.PayFrequency
+    props.userDetails.PayFrequency,
+    props.userDetails.NextPaydate
   );
 
   let freq = props.tempAutoRuns[0].Frequency;

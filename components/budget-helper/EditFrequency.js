@@ -8,6 +8,7 @@ function EditFrequency({
   nextPaydate,
   setNextPaydate,
   updateFrequency,
+  forHelp,
 }) {
   return (
     <div className="flex flex-col items-center justify-center h-full">
@@ -50,15 +51,17 @@ function EditFrequency({
         </div>
       </div>
 
-      <button
-        type="button"
-        className="font-bold p-3 ml-5 mt-8 w-32 rounded-md hover:underline bg-gray-300 hover:bg-blue-300 hover:text-white"
-        onClick={() => {
-          updateFrequency();
-        }}
-      >
-        Save
-      </button>
+      {!forHelp && (
+        <button
+          type="button"
+          className="font-bold p-3 ml-5 mt-8 w-32 rounded-md hover:underline bg-gray-300 hover:bg-blue-300 hover:text-white"
+          onClick={() => {
+            updateFrequency();
+          }}
+        >
+          Save
+        </button>
+      )}
     </div>
   );
 }

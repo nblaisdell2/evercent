@@ -28,6 +28,29 @@
     "Modals": {
         "YNAB_CATEGORIES": "Categories",
         "AUTOMATION": "Automation",
-        "SETUP_BUDGET": "Initialize"
+        "SETUP_BUDGET": "Initialize",
+
+        "HELP_REG_EXPENSES": "Regular Expenses",
+        "HELP_BUDGET_CATEGORIES": "Budget Categories",
+        "HELP_BUDGET_CHART_DETAILS": "Budget Chart",
+        "HELP_AUTOMATION_SETUP": "Automation Setup",
+
+        "HELP_CAT_AMOUNT": "Amount",
+        "HELP_CAT_EXTRA_AMOUNT": "Extra Amount",
+        "HELP_CAT_PERCENT_INCOME": "% of Monthly Income",
+        "HELP_CAT_OPTION_REGULAR": "Regular / 6 Month Expense",
+        "HELP_CAT_OPTION_UPCOMING": "Upcoming Expense",
+        "HELP_CAT_FREQUENCY": "Frequency",
+        "HELP_CAT_DUE_DATE": "Due Date",
+        "HELP_CAT_REPEAT_EVERY": "Repeat Every?",
+        "HELP_CAT_INCLUDE": "Include on Chart",
+        "HELP_CAT_ALWAYS_USE_CURRENT": "Always Use Current Month",
+        "HELP_CAT_MULTIPLE_TRANSACTIONS": "Multiple Monthly Transactions?",
+
+        "HELP_AMTS_PAY_FREQ": "Pay Frequency",
+        "HELP_AMTS_MONTHLY_INCOME": "Monthly Income",
+        "HELP_AMTS_AMOUNT_REMAINING": "Amount Remaining",
+        "HELP_AMTS_AMOUNT_USED": "Amount Used",
+        "HELP_AMTS_PERCENT_USED": "% Used"
     }
 }

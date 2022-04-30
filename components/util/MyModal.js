@@ -4,6 +4,7 @@ import Modal from "react-modal";
 import AutomationModal from "../modals/AutomationModal";
 import CategoryModal from "../modals/CategoryModal";
 import SetupBudgetModal from "../modals/SetupBudgetModal";
+import HelpModal from "../modals/HelpModal";
 
 import XIcon from "@heroicons/react/outline/XIcon";
 
@@ -38,6 +39,10 @@ function MyModal(props) {
         return <AutomationModal closeModal={closeModal} {...props} />;
       case data.Modals.SETUP_BUDGET:
         return <SetupBudgetModal closeModal={closeModal} {...props} />;
+      default:
+        return (
+          <HelpModal closeModal={closeModal} modalText={currModal} {...props} />
+        );
     }
   };
 

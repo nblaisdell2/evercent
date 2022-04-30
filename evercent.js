@@ -295,6 +295,7 @@ async function getFormattedCategoryList(preYNABCategories, preUserCategories) {
             repeatFreqType: catGroup.RepeatFreqType,
             useCurrentMonth: catGroup.UseCurrentMonth,
             toggleInclude: catGroup.ToggleInclude,
+            multipleTransactions: catGroup.MultipleTransactions,
           });
         }
       }
@@ -613,7 +614,7 @@ export async function getPreloadedData(userEmail, ynabAuthCode, cookies) {
 
   console.log("Getting user details from cookies - AFTER YNAB");
   console.log(preUserDetails);
-  // console.log(preUserCategories);
+  // console.log(preUserCategories[0].categories);
   // console.log(preYNABMonthDetails);
 
   // Pre-calculate the "six month details" using the category details
@@ -708,6 +709,7 @@ function createCategory(catGroupID, catID, ynabList) {
     toggleInclude: false,
     upcomingExpense: null,
     useCurrentMonth: false,
+    multipleTransactions: false,
   };
 }
 
@@ -911,7 +913,8 @@ export function getCategoryListItems(
 export function getCategoryListItemsWithMonths(
   userCategoryList,
   monthlyAmount,
-  frequency
+  frequency,
+  nextPaydate
 ) {
   let listItems = [];
   let newItem = {};
@@ -973,7 +976,11 @@ export function getCategoryListItemsWithMonths(
       listItems.push(newItem);
 
       console.log("Getting MonthDetails");
-      let mthAmtDetails = getMonthAmountDetailsFromYNAB(currCat, frequency);
+      let mthAmtDetails = getMonthAmountDetailsFromYNAB(
+        currCat,
+        frequency,
+        nextPaydate
+      );
       console.log("MonthDetails", mthAmtDetails);
 
       for (let i = 0; i < mthAmtDetails.length; i++) {
@@ -1076,14 +1083,15 @@ export function calculateUpcomingExpensesForCategory(
   // console.log("amtPerPaycheck", amtPerPaycheck);
 
   let dtWithTime = parseISO(nextPaydate); //getNextPaydate(nextPaydate, payFreq);
-  // console.log("Starting date", dtWithTime.toISOString());
+  console.log("Starting date", dtWithTime.toISOString());
 
   let newAutoRunList = [];
+
   do {
     totalPurchaseAmt -= amtPerPaycheck + extraAmt;
     // console.log("new totalPurchaseAmt", totalPurchaseAmt);
 
-    // console.log("About to add new date", dtWithTime.toISOString());
+    console.log("About to add new date", dtWithTime.toISOString());
 
     newAutoRunList.push({
       RunTime: dtWithTime.toISOString(),
@@ -1109,6 +1117,10 @@ export function calculateUpcomingExpensesForCategory(
 
     dtWithTime = dtTemp;
     // console.log("New dtWithTime", dtWithTime.toISOString());
+
+    if (amtPerPaycheck + extraAmt == 0) {
+      break;
+    }
   } while (totalPurchaseAmt > 0);
 
   let dtPurchaseDate = new Date(
@@ -1337,7 +1349,7 @@ export function getAmountByFrequency(amt, freq) {
   }
 }
 
-export function getMonthAmountDetailsFromYNAB(categoryIn, freq) {
+export function getMonthAmountDetailsFromYNAB(categoryIn, freq, nextPaydate) {
   let category = { ...categoryIn };
   let monthAmountDetails = [];
 
@@ -1353,6 +1365,32 @@ export function getMonthAmountDetailsFromYNAB(categoryIn, freq) {
   let foundStartMonth = false;
   for (let i = 0; i < ynabMonths.length; i++) {
     let ynMonth = parseISO(ynabMonths[i].month);
+
+    // console.log(
+    //   "ynMonth    ",
+    //   ynMonth,
+    //   ynMonth.getMonth(),
+    //   ynMonth.getFullYear()
+    // );
+    // console.log(
+    //   "nextPaydate",
+    //   parseISO(nextPaydate),
+    //   parseISO(nextPaydate).getMonth(),
+    //   parseISO(nextPaydate).getFullYear()
+    // );
+
+    // If it's the end of the month (28th, 29th, 30th, 31st, etc.), but our next paycheck doesn't
+    // arrive until the following month, then we should skip trying to add any money into this
+    // month. Without this check, it would look like we're adding money into April, even though our
+    // next paycheck isn't until May, and that would change once we hit May 1st. By adding this line,
+    // it will actually take our next paycheck into consideration when deciding what month to start on.
+    if (
+      parseISO(nextPaydate).getFullYear() > ynMonth.getFullYear() ||
+      parseISO(nextPaydate).getMonth() > ynMonth.getMonth()
+    ) {
+      continue;
+    }
+
     let ynMonthCat = null;
     if (category.useCurrentMonth) {
       ynMonthCat = ynabMonths[0].categories.find((x) => x.id == category.id);
@@ -1379,11 +1417,14 @@ export function getMonthAmountDetailsFromYNAB(categoryIn, freq) {
     // });
 
     let monthNeedsFunding = ynMonthCat.budgeted / 1000 < totalDesiredMonthAmt;
+    let foundTransactions = ynMonthCat.activity !== 0;
     if (
       foundStartMonth ||
       category.expenseType == null ||
       category.useCurrentMonth ||
-      monthNeedsFunding
+      (monthNeedsFunding &&
+        (category.multipleTransactions ||
+          (!category.multipleTransactions && !foundTransactions)))
     ) {
       foundStartMonth = true;
 
