@@ -298,11 +298,6 @@ function HelpModal(props) {
             </div>
           </div>
         );
-        return "  Add items are added to this list from the 'Add/Remove YNAB Categories' button, they will start populating on this list below. Each of the amounts and other settings for each of these categories can be edited once they are added to the list, and the amounts will start to show on the chart on the left. \
-          Category    - This is the name of the category/sub-category from YNAB\
-          Options     - This will have an icon to show whether or not this category has been marked as 'Regular Expense' or 'Upcoming Expense'\
-          Amount      - This is the amount that is being used up for this category out of your entire monthly income. When there is a parentheses, that means that the amount per month has been altered by the tool, and this new amount will be the actual amount that comes out of your monthly income.\
-          % of Income - This is a % of how much this particular category/sub-category makes up out of your entire monthly income";
       case data.Modals.HELP_REG_EXPENSES:
         return (
           <div>
@@ -324,27 +319,129 @@ function HelpModal(props) {
           </div>
         );
       case data.Modals.HELP_AUTOMATION_SETUP:
-        return "  - This should show up when I click on the 'Automate?' button\
-        Once all the categories have been selected on the 'BudgetChart' screen, we'll know exactly how much we'll need for all of our expenses every single month, and ideally, we would enter these amounts into YNAB when we get paid, each and every paycheck.\
-        \
-        Because of this, we can automate the process entirely, where this tool will take the information from that chart and on a specific date/time (or on a schedule), we can automatically enter the amounts from the chart into the *actual* categories in YNAB. That way, the only thing we'll need to make sure is that we continue to add our transactions and our paycheck transaction, as the exact amount may not be known on payday, but we do still need to enter the exact amounts into YNAB, just as normal. Then, on payday, instead of working through each of the categories and assigning those dollars to categories in the budget, this tool will do that automatically!\
-        \
-          - Explain the 'Choose a Day/Choose a Time' & 'Scheduled vs. One-Time'\
-        If One-Time is chosen, then the automation will only run a single time, on the specific date/time chosen, and after that, the automation will be turned off. This option can be used if you want to test things out before scheduling things.\
-        \
-        Scheduled will take the information from the 'Pay Frequency' (Weekly, 2 Weeks, Monthly) and the selected next paydate, and will only ask for the time that the user wants to run the automation at. Once that time is selected, another screen will allow time to review, and will display the next 10 times that the automation will run. However, the automation is indefinite, and will only stop after it's been explicitly turned off, not only the next 10 times.\
-        \
-          - How does it work?\
-        For each category and the amount that will be posted for that category, the following will be considered:\
-          - First, it will start by looking at the current month in YNAB and check that category to see if the amount has already been met for that particular month\
-            - Special circumstance for non-regular expenses and 'Always Use Current Month' categories, which will override looking at future months\
-          - If the amount has already been met for this month, it will continue onto the next future month and do the same check. This check will continue until a month that hasn't been fully funded for this category has been found. *Note* This is how the 6-Months Ahead goal will be met!\
-        \
-          - Once the appropriate month is found, we'll start by taking the 'Total Amount to Post' for this category, which is the amount per paycheck + any extra amount (see extra amount) that was added. Then, we'll determine how much *should* be posted for each month, by checking the amount per paycheck without any extra amount.\
-        \
-          - Then, we'll see how much is already budgeted in YNAB for this category and compare that to how much we still have to post (Total Amount to Post). Once the new budgeted amount is determined, this is then actually posted to YNAB.\
-        \
-          - Lastly, if there is still some left over money to post to this category, it will continue to add it into the future months automatically. Otherwise, if there is no money left for this category, then we'll continue to the next category.";
+        return (
+          <div>
+            <div>
+              Once all the categories have been selected on the 'BudgetChart'
+              screen, we'll know exactly how much we'll need for all of our
+              expenses every single month, and ideally, we would enter these
+              amounts into YNAB when we get paid, each and every paycheck.
+            </div>
+            <br />
+            <div>
+              Because of this, we can automate the process entirely, where this
+              tool will take the information from that chart and on a specific
+              date/time (or on a schedule), we can automatically enter the
+              amounts from the chart into the <i>actual</i> categories in YNAB.
+              That way, the only thing we'll need to make sure is that we
+              continue to add our transactions and our paycheck transaction into
+              YNAB. Then, on payday, instead of working through each of the
+              categories and assigning those dollars to categories in the
+              budget, this tool will do that automatically!
+            </div>
+            <br />
+            <div>
+              <div className="text-center text-2xl font-bold mb-2 mt-6">
+                One-Time vs. Scheduled
+              </div>
+              <div className="bg-gray-200 rounded-md p-2">
+                <div>
+                  If One-Time is chosen, then the automation will only run a
+                  single time, on the specific date/time chosen, and after that,
+                  the automation will be turned off. This option can be used if
+                  you want to test things out before scheduling things.
+                </div>
+                <br />
+                <div>
+                  Scheduled will take the information from the{" "}
+                  <u>Pay Frequency</u> (Weekly, 2 Weeks, Monthly) and the
+                  selected next paydate, and will only ask for the time that the
+                  user wants to run the automation at. Once that time is
+                  selected, another screen will allow time to review, and will
+                  display the next 10 times that the automation will run.
+                  <br />
+                  <b>Note: </b>Even though only the next 10 runs are shown, the
+                  automation will continue indefinitely until it is turned off.
+                </div>
+              </div>
+            </div>
+            <br />
+            <div>
+              <div className="text-center text-2xl font-bold mb-2 mt-6">
+                How It Works
+              </div>
+              <div className="bg-gray-200 rounded-md p-2">
+                <div>
+                  For each category and the amount that will be posted for that
+                  category, the following will be considered:
+                </div>
+                <ol className="list-decimal ml-5">
+                  <li>
+                    First, it will start by looking at the current month in YNAB
+                    and check that category to see if the amount has already
+                    been met for that particular month
+                    <ul className="list-disc list-inside ml-5">
+                      <li>
+                        Certain special circumstances, such as non-regular
+                        expenses and categories with the 'Always Use Current
+                        Month' option set, will always override this and not
+                        look at future months.
+                      </li>
+                    </ul>
+                  </li>
+                  <br />
+                  <li>
+                    If the amount has already been met for this month, it will
+                    continue onto the next future month and do the same check.
+                    This check will continue until a month that hasn't been
+                    fully funded for this category has been found.
+                    <ul className="list-disc list-inside ml-5">
+                      <li>
+                        <b>Note:</b> This is how the 6-Months Ahead goal will be
+                        met!
+                      </li>
+                    </ul>
+                  </li>
+                  <br />
+                  <li>
+                    Then, we'll see how much is already budgeted in YNAB for
+                    this category and compare that to how much we still have to
+                    post (<i>Total Amount to Post</i>). Once the new budgeted
+                    amount is determined, that amount is posted to YNAB for that
+                    month.
+                    <ul className="list-disc list-inside ml-5">
+                      <li>
+                        <i>Total Amount to Post</i> - This is the amount that
+                        should be posted for this category per paycheck. The{" "}
+                        <u>Pay Frequency</u> will be taken into consideration to
+                        determine that amount
+                      </li>
+                      <li>
+                        For example, if a category calls for $1000, but you get
+                        paid every 2 weeks, on a new paycheck, only $500 should
+                        be posted. Then, on the next paycheck, the additional
+                        $500 would be.
+                      </li>
+                      <li>
+                        In that same example above, if you were paid weekly,
+                        that amount would change to $250 per paycheck to be
+                        posted to YNAB.
+                      </li>
+                    </ul>
+                  </li>
+                  <br />
+                  <li>
+                    Lastly, if there is still some left over money to post to
+                    this category, it will continue to add it into the future
+                    months automatically. Otherwise, if there is no money left
+                    for this category, then we'll continue to the next category.
+                  </li>
+                </ol>
+              </div>
+            </div>
+            <br />
+          </div>
+        );
       case data.Modals.HELP_CAT_AMOUNT:
         return "This should be the total amount that needs to be paid per month (monthly) OR the total amount for the entire bill if non-monthly. For example, if you pay something Yearly, you should enter the total amount that the yearly cost would be, not the amount per month.";
       case data.Modals.HELP_CAT_EXTRA_AMOUNT:
