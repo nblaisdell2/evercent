@@ -633,7 +633,7 @@ function HelpModal(props) {
                   <ul className="list-disc list-inside ml-5">
                     <li>
                       For example, if you pay $60 a week in gas, you should
-                      enter $240 for gas, since you'll need $60 x 4 weeks.
+                      enter $240 for gas, since you&apos;ll need $60 x 4 weeks.
                     </li>
                   </ul>
                 </li>
@@ -653,8 +653,8 @@ function HelpModal(props) {
             </div>
             <br />
             <div>
-              <b>Note: </b> If you're looking to add extra to this category to
-              get ahead or save more, only put the amount needed for this
+              <b>Note: </b> If you&apos;re looking to add extra to this category
+              to get ahead or save more, only put the amount needed for this
               category in the <u>Amount</u> section, and then put the rest in
               the <u>Extra Amount</u> section.
             </div>
@@ -679,11 +679,11 @@ function HelpModal(props) {
             </div>
             <br />
             <div>
-              This can be used when you want to use some amount, but you aren't
-              sure exactly how much you'd like to put. Instead, you can consider
-              how much you still have percentage-wise, add that % using the
-              slider, and it will automatically tell you what that amount would
-              be, and adds it to the <u>Amount</u> section.
+              This can be used when you want to use some amount, but you
+              aren&apos;t sure exactly how much you&apos;d like to put. Instead,
+              you can consider how much you still have percentage-wise, add that
+              % using the slider, and it will automatically tell you what that
+              amount would be, and adds it to the <u>Amount</u> section.
             </div>
           </div>
         );
@@ -719,8 +719,8 @@ function HelpModal(props) {
               </div>
               <br />
               <div>
-                From there, you can add a "Total Purchase Amount", and this will
-                add this category to the <u>Upcoming Expenses</u> tab.
+                From there, you can add a &quot;Total Purchase Amount&quot;, and
+                this will add this category to the <u>Upcoming Expenses</u> tab.
                 <ul className="list-disc list-inside ml-5">
                   <li>
                     <i>Total Purchase Amount</i> - This should be the total
@@ -729,7 +729,7 @@ function HelpModal(props) {
                   </li>
                   <li>
                     The <u>Amount</u> section should be unchanged, and still
-                    represent the amount you decide you'd like to put away{" "}
+                    represent the amount you decide you&apos;d like to put away{" "}
                     <i>per month</i> to save up for this
                   </li>
                 </ul>
@@ -770,7 +770,7 @@ function HelpModal(props) {
             <div>
               By choosing the exact date that a bill is due on, the tool can
               determine how much needs to be saved per paycheck so that you know
-              you'll have enough by the time the bill is due.
+              you&apos;ll have enough by the time the bill is due.
             </div>
             <br />
             <div>
@@ -824,9 +824,9 @@ function HelpModal(props) {
           <div>
             <div>
               For certain expenses, such as Auto Maintenance, there is no reason
-              to save the money into a future month, because you'll need all
-              that you were able to save up until that point when the time
-              comes, so you'll always want to save it in the current month.
+              to save the money into a future month, because you&apos;ll need
+              all that you were able to save up until that point when the time
+              comes, so you&apos;ll always want to save it in the current month.
             </div>
             <br />
             <div>
@@ -848,7 +848,7 @@ function HelpModal(props) {
                 <li>
                   For most categories and bills, there is only a single
                   transaction that comes out per month (phone bill, rent,
-                  mortgage, etc.), and for those, we'll keep this option
+                  mortgage, etc.), and for those, we&apos;ll keep this option
                   unchecked.
                 </li>
                 <li>
