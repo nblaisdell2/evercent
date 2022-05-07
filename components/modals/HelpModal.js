@@ -322,10 +322,11 @@ function HelpModal(props) {
         return (
           <div>
             <div>
-              Once all the categories have been selected on the 'BudgetChart'
-              screen, we'll know exactly how much we'll need for all of our
-              expenses every single month, and ideally, we would enter these
-              amounts into YNAB when we get paid, each and every paycheck.
+              Once all the categories have been selected on the{" "}
+              <b>Budget Chart</b> screen, we&apos;ll know exactly how much
+              we&apos;ll need for all of our expenses every single month, and
+              ideally, we would enter these amounts into YNAB when we get paid,
+              each and every paycheck.
             </div>
             <br />
             <div>
@@ -333,7 +334,7 @@ function HelpModal(props) {
               tool will take the information from that chart and on a specific
               date/time (or on a schedule), we can automatically enter the
               amounts from the chart into the <i>actual</i> categories in YNAB.
-              That way, the only thing we'll need to make sure is that we
+              That way, the only thing we&apos;ll need to make sure is that we
               continue to add our transactions and our paycheck transaction into
               YNAB. Then, on payday, instead of working through each of the
               categories and assigning those dollars to categories in the
@@ -383,9 +384,9 @@ function HelpModal(props) {
                     <ul className="list-disc list-inside ml-5">
                       <li>
                         Certain special circumstances, such as non-regular
-                        expenses and categories with the 'Always Use Current
-                        Month' option set, will always override this and not
-                        look at future months.
+                        expenses and categories with the{" "}
+                        <u>Always Use Current Month</u> option set, will always
+                        override this and not look at future months.
                       </li>
                     </ul>
                   </li>
@@ -393,7 +394,7 @@ function HelpModal(props) {
                   <li>
                     If the amount has already been met for this month, it will
                     continue onto the next future month and do the same check.
-                    This check will continue until a month that hasn't been
+                    This check will continue until a month that hasn&apos;t been
                     fully funded for this category has been found.
                     <ul className="list-disc list-inside ml-5">
                       <li>
@@ -404,9 +405,9 @@ function HelpModal(props) {
                   </li>
                   <br />
                   <li>
-                    Then, we'll see how much is already budgeted in YNAB for
-                    this category and compare that to how much we still have to
-                    post (<i>Total Amount to Post</i>). Once the new budgeted
+                    Then, we&apos;ll see how much is already budgeted in YNAB
+                    for this category and compare that to how much we still have
+                    to post (<i>Total Amount to Post</i>). Once the new budgeted
                     amount is determined, that amount is posted to YNAB for that
                     month.
                     <ul className="list-disc list-inside ml-5">
@@ -434,7 +435,8 @@ function HelpModal(props) {
                     Lastly, if there is still some left over money to post to
                     this category, it will continue to add it into the future
                     months automatically. Otherwise, if there is no money left
-                    for this category, then we'll continue to the next category.
+                    for this category, then we&apos;ll continue to the next
+                    category.
                   </li>
                 </ol>
               </div>
