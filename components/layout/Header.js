@@ -2,12 +2,24 @@ import Image from "next/image";
 import Sidebar from "react-sidebar";
 import MySidebar from "../util/MySidebar";
 import useSidebar from "../../hooks/useSidebar";
+import { useUser } from "@auth0/nextjs-auth0";
 
 function Header({ isConnectedToYNAB }) {
   const [sidebarOpen, setSidebarOpen, sidebarStyles] = useSidebar(false);
+  const { user } = useUser();
 
   return (
-    <header className="flex justify-end bg-blue-900 p-1 pr-6">
+    <header
+      className={`flex ${
+        user ? "justify-between" : "justify-end"
+      } items-center bg-blue-900 p-1 pr-6`}
+    >
+      {user && (
+        <div className="text-white ml-5 text-2xl font-cinzel">
+          Welcome back, {user.nickname}!
+        </div>
+      )}
+
       <div
         className="hover:cursor-pointer flex items-center"
         onClick={() => setSidebarOpen(true)}

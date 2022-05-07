@@ -7,7 +7,7 @@ function ChartSection(props) {
     switch (name) {
       case "Budget Chart":
         return <BudgetChart {...props} />;
-      case "Six Month Details":
+      case "Regular Expenses":
         return <SixMonthChart {...props} />;
       case "Upcoming Expenses":
         return <UpcomingExpensesChart {...props} />;

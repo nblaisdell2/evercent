@@ -9,7 +9,7 @@ function Widgets({ name, setWidget }) {
       case "Budget Chart":
         myIcon = <ChartBarIcon height={30} width={30} />;
         break;
-      case "Six Month Details":
+      case "Regular Expenses":
         myIcon = <CalendarIcon height={30} width={30} />;
         break;
       case "Upcoming Expenses":
@@ -35,7 +35,7 @@ function Widgets({ name, setWidget }) {
   return (
     <div className="flex justify-center space-x-20 text-2xl my-5">
       {widgetItem("Budget Chart", name === "Budget Chart")}
-      {widgetItem("Six Month Details", name === "Six Month Details")}
+      {widgetItem("Regular Expenses", name === "Regular Expenses")}
       {widgetItem("Upcoming Expenses", name === "Upcoming Expenses")}
     </div>
   );

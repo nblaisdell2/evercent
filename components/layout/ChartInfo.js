@@ -7,7 +7,7 @@ function ChartInfo(props) {
     switch (name) {
       case "Budget Chart":
         return <BudgetChartInfo {...props} />;
-      case "Six Month Details":
+      case "Regular Expenses":
         return <SixMonthInfo {...props} />;
       case "Upcoming Expenses":
         return <UpcomingExpensesInfo {...props} />;

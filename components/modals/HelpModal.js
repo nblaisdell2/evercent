@@ -6,8 +6,176 @@ import EditFrequency from "../budget-helper/EditFrequency";
 import BarCharts from "../budget-helper/BarCharts";
 import CalendarIcon from "@heroicons/react/solid/CalendarIcon";
 import GiftIcon from "@heroicons/react/solid/GiftIcon";
+import MyDropdown from "../util/MyDropdown";
+import DateTimePicker from "../util/DateTimePicker";
+import MyToggleSwitch from "../util/MyToggleSwitch";
+import MyHelpIcon from "../util/MyHelpIcon";
 
 function HelpModal(props) {
+  const getRegularExpenseSection = (forHelp) => {
+    return (
+      <div className="rounded-2xl border border-gray-500 bg-gray-200 p-1">
+        <h2 className="text-center font-semibold">REGULAR EXPENSE</h2>
+
+        {/* Row 1 */}
+        <div className="flex justify-evenly my-3">
+          <div
+            className={`flex flex-col items-center ${
+              forHelp == data.Modals.HELP_CAT_FREQUENCY &&
+              "border-2 border-red-400 rounded-md p-2"
+            }`}
+          >
+            {getHeader("Frequency")}
+            <MyDropdown
+              // value={"Monthly"}
+              options={["Monthly", "By Date"]}
+              onChange={() => {}}
+            />
+          </div>
+
+          <div
+            className={`flex flex-col items-center ${
+              forHelp == data.Modals.HELP_CAT_DUE_DATE &&
+              "border-2 border-red-400 rounded-md p-2"
+            }`}
+          >
+            {getHeader("Next Due Date")}
+            <DateTimePicker autoDate={new Date()} setAutoDate={() => {}} />
+          </div>
+
+          <div className="flex justify-between">
+            <div
+              className={`flex flex-col items-center ${
+                forHelp == data.Modals.HELP_CAT_REPEAT_EVERY &&
+                "border-2 border-red-400 rounded-md p-2"
+              }`}
+            >
+              {getHeader("Repeat Every?")}
+              <div className="flex justify-between">
+                <MyDropdown
+                  // value={category.repeatFreqNum}
+                  options={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]}
+                  onChange={() => {
+                    {
+                    }
+                  }}
+                  // disabled={category.expenseType == "Monthly"}
+                />
+                <div className="mx-2"></div>
+                <MyDropdown
+                  // value={category.repeatFreqType}
+                  options={["Months", "Years"]}
+                  onChange={() => {
+                    {
+                    }
+                  }}
+                  // disabled={category.expenseType == "Monthly"}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2 */}
+        <div className="flex justify-center">
+          <div className="flex justify-evenly items-center w-full">
+            <div
+              className={`${
+                forHelp == data.Modals.HELP_CAT_INCLUDE &&
+                "border-2 border-red-400 rounded-md p-2"
+              }`}
+            >
+              <MyToggleSwitch
+                label={getHeader("Include on Chart?")}
+                checked={true}
+                onClick={() => {}}
+              />
+            </div>
+            {/* <MyCheckbox
+            label={"Toggle Include?"}
+            checked={category.toggleInclude}
+            onClick={() =>
+              updateCategory(UpdateType.TOGGLE_TOGGLE_INCLUDE)()
+            }
+          /> */}
+            <div
+              className={`${
+                forHelp == data.Modals.HELP_CAT_ALWAYS_USE_CURRENT &&
+                "border-2 border-red-400 rounded-md p-2"
+              }`}
+            >
+              <MyToggleSwitch
+                label={getHeader("Always Use Current Month?")}
+                checked={false}
+                onClick={() => {}}
+              />
+            </div>
+            <div
+              className={`${
+                forHelp == data.Modals.HELP_CAT_MULTIPLE_TRANSACTIONS &&
+                "border-2 border-red-400 rounded-md p-2"
+              }`}
+            >
+              <MyToggleSwitch
+                label={getHeader("Multiple Monthly Transactions?")}
+                checked={false}
+                onClick={() => {}}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const getHeader = (headerName) => {
+    let modal = "";
+    switch (headerName) {
+      case "Amount":
+        modal = data.Modals.HELP_CAT_AMOUNT;
+        break;
+      case "Extra Amount":
+        modal = data.Modals.HELP_CAT_EXTRA_AMOUNT;
+        break;
+      case "% of Monthly Income":
+        modal = data.Modals.HELP_CAT_PERCENT_INCOME;
+        break;
+      case "6 Months Expense":
+        modal = data.Modals.HELP_CAT_OPTION_REGULAR;
+        break;
+      case "Upcoming Expense":
+        modal = data.Modals.HELP_CAT_OPTION_UPCOMING;
+        break;
+      case "Frequency":
+        modal = data.Modals.HELP_CAT_FREQUENCY;
+        break;
+      case "Next Due Date":
+        modal = data.Modals.HELP_CAT_DUE_DATE;
+        break;
+      case "Repeat Every?":
+        modal = data.Modals.HELP_CAT_REPEAT_EVERY;
+        break;
+      case "Include on Chart?":
+        modal = data.Modals.HELP_CAT_INCLUDE;
+        break;
+      case "Always Use Current Month?":
+        modal = data.Modals.HELP_CAT_ALWAYS_USE_CURRENT;
+        break;
+      case "Multiple Monthly Transactions?":
+        modal = data.Modals.HELP_CAT_MULTIPLE_TRANSACTIONS;
+        break;
+      default:
+        modal = "";
+        break;
+    }
+
+    return (
+      <div className="flex justify-center items-center">
+        <div className="font-medium text-sm my-1">{headerName}</div>
+      </div>
+    );
+  };
+
   const getHelpText = (modalHeading) => {
     switch (modalHeading) {
       case data.Modals.HELP_AMTS_PAY_FREQ:
@@ -445,31 +613,252 @@ function HelpModal(props) {
           </div>
         );
       case data.Modals.HELP_CAT_AMOUNT:
-        return "This should be the total amount that needs to be paid per month (monthly) OR the total amount for the entire bill if non-monthly. For example, if you pay something Yearly, you should enter the total amount that the yearly cost would be, not the amount per month.";
+        return (
+          <div>
+            <div>
+              This is the total monthly amount for this particular category
+            </div>
+            <br />
+            <div>
+              <ul className="list-disc list-inside ml-5">
+                <li>
+                  If this category is paid <b>monthly</b>, the total amount for
+                  the month should be entered.
+                </li>
+                <br />
+                <li>
+                  If this category is paid <b>weekly</b>, or more frequently
+                  than once a month, figure out how much would be spent for the
+                  month.
+                  <ul className="list-disc list-inside ml-5">
+                    <li>
+                      For example, if you pay $60 a week in gas, you should
+                      enter $240 for gas, since you'll need $60 x 4 weeks.
+                    </li>
+                  </ul>
+                </li>
+                <br />
+                <li>
+                  If this category is paid less frequently than once a month
+                  (every 3 months, every 6 months, once a year, etc.), enter the
+                  total amount for the category
+                  <ul className="list-disc list-inside ml-5">
+                    <li>
+                      For example, if you pay $100 a year for a category, you
+                      should enter $100 in this section.
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+            <br />
+            <div>
+              <b>Note: </b> If you're looking to add extra to this category to
+              get ahead or save more, only put the amount needed for this
+              category in the <u>Amount</u> section, and then put the rest in
+              the <u>Extra Amount</u> section.
+            </div>
+          </div>
+        );
       case data.Modals.HELP_CAT_EXTRA_AMOUNT:
-        return "This is any amount that you would like to add extra to this category, per month. The 'Amount' section should already account for the entire bill, so this section should be used for the purpose of getting ahead on this category, or trying to speed up the savings.";
+        return (
+          <div>
+            <div>
+              This is any amount you want to add extra to this category. This
+              amount will be added on top of the <u>Amount</u>, in order to save
+              more or get ahead.
+            </div>
+          </div>
+        );
       case data.Modals.HELP_CAT_PERCENT_INCOME:
-        return "This slider will adjust the 'Amount' section, and will represent the % of your total Monthly Income. This can be used when you want to use some amount, but you aren't sure exactly how much you'd like to put. Instead, you can consider how much you still have percentage-wise, add that % using the slider, and it will automatically tell you what that amount would be, and adds it to the 'Amount' section.";
+        return (
+          <div>
+            <div>
+              This slider will adjust the <u>Amount</u> section, and will
+              represent the % of your total Monthly Income.
+            </div>
+            <br />
+            <div>
+              This can be used when you want to use some amount, but you aren't
+              sure exactly how much you'd like to put. Instead, you can consider
+              how much you still have percentage-wise, add that % using the
+              slider, and it will automatically tell you what that amount would
+              be, and adds it to the <u>Amount</u> section.
+            </div>
+          </div>
+        );
       case data.Modals.HELP_CAT_OPTION_REGULAR:
-        return "Checking this option will add this category to the 'Upcoming Expenses' section, but only if an amount is also added to the section that pops up when this option is selected.\
-              - Upcoming Expense Amount\
-        This should be the total amount of whatever you are trying to save up for and purchase. The 'Amount' section should be unchanged, and still represent the amount you decide you'd like to put away per month to save up for this. THIS amount is the total amount for the actual purchase itself.\
-        \
-        Once this information is entered, then more details about how soon this purchase can be made can be found in the 'Upcoming Expenses' section of the site.";
+        return (
+          <div>
+            <div>
+              Checking this option will add this category to your{" "}
+              <u>Regular Expenses</u>, and should be checked for any category
+              that you would like to get ahead on.
+            </div>
+            <br />
+            <div>
+              This should not be limited to just your main bills, but anything
+              that is in your budget that if you were to lose your job, you
+              would still be able to cover all of these things for a number of
+              months into the future.
+            </div>
+            <br />
+            <div>
+              Once checked, the <u>Regular Expense</u> section will appear, and
+              you can set the appropriate settings for this category.
+            </div>
+          </div>
+        );
       case data.Modals.HELP_CAT_OPTION_UPCOMING:
-        return "Checking this option will add this category to the 'Regular Expenses', and should be marked for any expense that you would like to be 6 months ahead on. This should not be limited to just your main bills, but anything that is in your budget that if you were to lose your job, you would still be able to cover all of these things for a number of months into the future.";
+        return (
+          <div>
+            <div>
+              <div>
+                Checking this option will allow the <u>Upcoming Expenses</u>{" "}
+                section will appear.
+              </div>
+              <br />
+              <div>
+                From there, you can add a "Total Purchase Amount", and this will
+                add this category to the <u>Upcoming Expenses</u> tab.
+                <ul className="list-disc list-inside ml-5">
+                  <li>
+                    <i>Total Purchase Amount</i> - This should be the total
+                    amount of whatever you are trying to save up for and
+                    purchase
+                  </li>
+                  <li>
+                    The <u>Amount</u> section should be unchanged, and still
+                    represent the amount you decide you'd like to put away{" "}
+                    <i>per month</i> to save up for this
+                  </li>
+                </ul>
+              </div>
+              <br />
+              <div>
+                Once this information is entered, then more details about how
+                soon this purchase can be made can be found in the{" "}
+                <u>Upcoming Expenses</u> section of the site.
+              </div>
+            </div>
+          </div>
+        );
       case data.Modals.HELP_CAT_FREQUENCY:
-        return "This lets the tool know if your bill is one that's paid every month, or one that is paid on any other schedule (every 3 months, every 6 months, yearly, quarterly, etc.)";
+        return (
+          <div>
+            <div>This lets the tool know how often this category is paid.</div>
+            <br />
+            <div>
+              There are two options:
+              <ul className="list-disc list-inside ml-5">
+                <li>
+                  <b>Monthly</b> - Choose this option if you pay this category
+                  once a month (or more than once a month)
+                </li>
+                <li>
+                  <b>By Date</b> - Choose this option if you pay this category
+                  less than once a month (every 3 months, every 6 months, every
+                  year, etc.)
+                </li>
+              </ul>
+            </div>
+          </div>
+        );
       case data.Modals.HELP_CAT_DUE_DATE:
-        return "By choosing the exact date that a bill is due on, the tool can determine how much needs to be saved per paycheck so that you know you'll have enough by the time the bill is due. As the bill date is met, that expense date will automatically be adjusted by the tool to the next appropriate expense date. ";
+        return (
+          <div>
+            <div>
+              By choosing the exact date that a bill is due on, the tool can
+              determine how much needs to be saved per paycheck so that you know
+              you'll have enough by the time the bill is due.
+            </div>
+            <br />
+            <div>
+              As the due date is reached, it will automatically be adjusted by
+              the tool to the next appropriate due date.
+            </div>
+          </div>
+        );
       case data.Modals.HELP_CAT_REPEAT_EVERY:
-        return "This tells the tool how often a particular expense should be repeat. This is where you would determine if you pay something every 6 months, every 3 months, every 4 months, yearly (every 12 months), every 5 years, etc.";
+        return (
+          <div>
+            <div>
+              This tells the tool how often a particular expense should be
+              repeat. This is where you would determine if you pay something
+              every 6 months, every 3 months, every 4 months, yearly (every 12
+              months), every 5 years, etc.
+            </div>
+            <br />
+            <div>
+              <div>
+                If the <b>Frequency</b> is set to <u>Monthly</u>, this will
+                always be every 1 month.
+              </div>
+              <div>
+                If the <b>Frequency</b> is set to <u>By Date</u>, this will
+                become enabled, and can be customized.
+              </div>
+            </div>
+          </div>
+        );
       case data.Modals.HELP_CAT_INCLUDE:
-        return "If this is unchecked, the 'Amount' will remain but that amount will be removed from the actual chart. This is for the purposes of showing the details on the 'Six Month Details' section, but not actually actively using it as part of your budget currently. For example, if you're saving up for a bill that you don't actually have yet (which is really thinking ahead), if you meet your six month goal before you actually have to start paying, you can choose to uncheck this to remove it from your budget, since you no longer need to fund the category for the time being, and you can still see your progress in the Six Month Details section. Otherwise, if you were to change the 'Amount' to 0, then there would be no way to tell how far towards the six month ahead you are.";
+        return (
+          <div>
+            <div>
+              If this option is checked, then all the information for this
+              category will be included on the chart, as expected. By default,
+              this option is selected.
+            </div>
+            <br />
+            <div>
+              If this is unchecked, the <u>Amount</u> and all the other settings
+              for this category will remain, but that amount will be removed
+              from the chart. This is useful if you want to temporarily stop
+              funding a particular category, without having to re-enter all the
+              settings for the category.
+            </div>
+          </div>
+        );
       case data.Modals.HELP_CAT_ALWAYS_USE_CURRENT:
-        return "For certain expenses, such as Auto Maintenance, there is no reason to save the money into a future month, because I'll need all that I was able to save up until that point when the time comes, so I'll always want to save it in the current month. By selecting this option, the automation will always choose to post the amount in YNAB in the current month, rather than trying to determine which future month to post the money in.";
+        return (
+          <div>
+            <div>
+              For certain expenses, such as Auto Maintenance, there is no reason
+              to save the money into a future month, because you'll need all
+              that you were able to save up until that point when the time
+              comes, so you'll always want to save it in the current month.
+            </div>
+            <br />
+            <div>
+              By selecting this option, the amount posted to YNAB will always be
+              in the current month, rather than trying to determine which future
+              month to post the money into.
+            </div>
+          </div>
+        );
       case data.Modals.HELP_CAT_MULTIPLE_TRANSACTIONS:
-        return "Multiple Transactions explanation";
+        return (
+          <div>
+            <div>
+              If you have multiple transactions that come out of this category
+              in a month, this option should be checked.
+            </div>
+            <div>
+              <ul className="list-disc list-inside ml-5">
+                <li>
+                  For most categories and bills, there is only a single
+                  transaction that comes out per month (phone bill, rent,
+                  mortgage, etc.), and for those, we'll keep this option
+                  unchecked.
+                </li>
+                <li>
+                  For other categories that might have multiple transactions in
+                  a month, such as gas or food, this option should be checked.
+                </li>
+              </ul>
+            </div>
+          </div>
+        );
       default:
         break;
     }
@@ -499,6 +888,21 @@ function HelpModal(props) {
             />
           </div>
           <div className="m-2 border-t border-gray-300"></div>
+        </div>
+      )}
+
+      {[
+        data.Modals.HELP_CAT_FREQUENCY,
+        data.Modals.HELP_CAT_DUE_DATE,
+        data.Modals.HELP_CAT_REPEAT_EVERY,
+        data.Modals.HELP_CAT_INCLUDE,
+        data.Modals.HELP_CAT_ALWAYS_USE_CURRENT,
+        data.Modals.HELP_CAT_MULTIPLE_TRANSACTIONS,
+      ].includes(props.modalText) && (
+        <div className="mb-4">
+          <div className="my-2 border-t border-gray-300"></div>
+          <div>{getRegularExpenseSection(props.modalText)}</div>
+          <div className="my-2 border-t border-gray-300"></div>
         </div>
       )}
 
