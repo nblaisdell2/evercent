@@ -85,6 +85,7 @@ function SetupBudgetModal(props) {
   ) => {
     // Get the amount to post to YNAB for this month/category
     let monthAmt = monthToSave.totalAmount.replace("$", "");
+    let currBudgeted = monthToSave.currBudgeted;
 
     console.log("postCategoryAmountToYNAB");
     console.log("monthAmt", monthAmt);
@@ -98,6 +99,7 @@ function SetupBudgetModal(props) {
       monthToSave.id,
       monthToSave.month,
       monthAmt,
+      currBudgeted,
       props.userDetails.DefaultBudgetID
     )
       .then(async (rateLim) => {

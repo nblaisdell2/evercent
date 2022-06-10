@@ -95,6 +95,7 @@ export async function PostCategoryMonth(
   categoryID,
   month,
   categoryAmount,
+  currBudgeted,
   budgetID = "default"
 ) {
   let ynabURI = GetAPIBudgetMonthURL(
@@ -105,7 +106,9 @@ export async function PostCategoryMonth(
 
   let postData = {
     category: {
-      budgeted: parseInt(parseFloat(categoryAmount) * 1000),
+      budgeted: parseInt(
+        currBudgeted * 1000 + parseFloat(categoryAmount) * 1000
+      ),
     },
   };
 

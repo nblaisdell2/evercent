@@ -1231,6 +1231,13 @@ export function getSetupCategoriesWithMonths(
 
           catTotalAmt += currAmt;
 
+          // Get the currently budgeted amount for the category/month
+          let currMthDetails = getMonthDetails();
+          let currAmtBudgeted =
+            currMthDetails
+              .find((x) => x.month == currMonth.toISOString().substring(0, 10))
+              ?.categories.find((x) => x.id == currCat.id)?.budgeted / 1000;
+
           if (!currCat.useCurrentMonth) {
             monthArr.push({
               isParent: false,
@@ -1245,6 +1252,7 @@ export function getSetupCategoriesWithMonths(
                 currMonth.getFullYear(),
               numMonthsAhead: "",
               totalAmount: getMoneyString(currAmt, 2),
+              currBudgeted: currAmtBudgeted,
             });
 
             mthMth += 1;
@@ -1269,6 +1277,7 @@ export function getSetupCategoriesWithMonths(
                   currMonth.getFullYear(),
                 numMonthsAhead: "",
                 totalAmount: getMoneyString(catTotalAmt, 2),
+                currBudgeted: currAmtBudgeted,
               });
             } else {
               monthArr[0].totalAmount = getMoneyString(catTotalAmt, 2);
