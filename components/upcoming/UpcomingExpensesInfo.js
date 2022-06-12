@@ -1,6 +1,7 @@
 import {
   getAmountByFrequency,
   calculateUpcomingExpensesForCategory,
+  getMonthDetails,
 } from "../../evercent";
 import { getMoneyString } from "../../utils";
 import NumberInput from "../util/NumberInput";
@@ -51,6 +52,7 @@ function UpcomingExpensesInfo(props) {
     selCat,
     props.userDetails.NextPaydate,
     props.userDetails.PayFrequency,
+    getMonthDetails(),
     extraAmount
   );
 
@@ -162,6 +164,7 @@ function UpcomingExpensesInfo(props) {
                   selCat,
                   props.userDetails.NextPaydate,
                   props.userDetails.PayFrequency,
+                  getMonthDetails(),
                   v
                 );
                 return (

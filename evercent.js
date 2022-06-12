@@ -114,7 +114,12 @@ async function getUserDetailsFromCookies(cookies) {
   return [newUserDetails, newUserCategoryList];
 }
 
-export async function getUpcomingDetails(categoryList, frequency, nextPaydate) {
+export async function getUpcomingDetails(
+  categoryList,
+  frequency,
+  nextPaydate,
+  mthDetailsIn
+) {
   let upcomingDetails = {};
   upcomingDetails.extraAmount = 0;
   upcomingDetails.selectedCategory = null;
@@ -130,6 +135,7 @@ export async function getUpcomingDetails(categoryList, frequency, nextPaydate) {
       currCat,
       nextPaydate,
       frequency,
+      mthDetailsIn,
       0
     );
   }
@@ -635,7 +641,8 @@ export async function getPreloadedData(userEmail, ynabAuthCode, cookies) {
   preUpcomingDetails = await getUpcomingDetails(
     preUserCategories,
     preUserDetails.PayFrequency,
-    preUserDetails.NextPaydate
+    preUserDetails.NextPaydate,
+    preYNABMonthDetails
   );
 
   return {
@@ -1067,13 +1074,14 @@ export function calculateUpcomingExpensesForCategory(
   cat,
   nextPaydate,
   payFreq,
+  mthDetailsIn,
   extraAmt = 0
 ) {
   // console.log("Getting purchase date for ", cat.name);
   // console.log(cat);
   // console.log("payFreq", payFreq);
 
-  let ynabLatestBalance = getLatestBalance(cat.id);
+  let ynabLatestBalance = getLatestBalance(cat.id, mthDetailsIn);
   // console.log("latest YNAB balance", ynabLatestBalance);
 
   let totalPurchaseAmt = cat.upcomingExpense - ynabLatestBalance;
@@ -1521,6 +1529,7 @@ export function getMonthDetails() {
 
 export function getLatestBalance(catID, myMthDetails = null) {
   let mthDetailsIn = myMthDetails || getMonthDetails();
+  // console.log("mthDetailsIn", mthDetailsIn);
   if (mthDetailsIn && mthDetailsIn.length > 0) {
     let ynabCat = mthDetailsIn[0]?.categories.find((x) => x.id == catID);
     return ynabCat["balance"] == 0 ? 0 : ynabCat["balance"] / 1000;
