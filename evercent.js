@@ -1367,153 +1367,223 @@ export function getAmountByFrequency(amt, freq) {
 }
 
 export function getMonthAmountDetailsFromYNAB(categoryIn, freq, nextPaydate) {
+  let CONSOLE_DEBUG = false;
+
   let category = { ...categoryIn };
   let monthAmountDetails = [];
 
   let totalAmtToPost = getCategoryAmountModified(category);
   totalAmtToPost = getAmountByFrequency(totalAmtToPost, freq);
 
-  // console.log("category", category);
+  // if (category.name == "(M) Car Detailing") {
+  if (totalAmtToPost > 0) {
+    if (CONSOLE_DEBUG) console.log("category", category);
 
-  // console.log("This is what I have to work with to start: ", totalAmtToPost);
+    if (CONSOLE_DEBUG)
+      console.log(
+        "This is what I have to work with to start: ",
+        totalAmtToPost
+      );
 
-  let ynabMonths = getMonthDetails();
+    let ynabMonths = getMonthDetails();
+    if (CONSOLE_DEBUG) console.log("ynabMonths", ynabMonths);
 
-  let foundStartMonth = false;
-  for (let i = 0; i < ynabMonths.length; i++) {
-    let ynMonth = parseISO(ynabMonths[i].month);
+    let foundStartMonth = false;
+    for (let i = 0; i < ynabMonths.length; i++) {
+      let ynMonth = parseISO(ynabMonths[i].month);
+      let dtNextPaydate = parseISO(nextPaydate);
+      let dtExpenseDate = parseISO(category.expenseDate);
 
-    // console.log(
-    //   "ynMonth    ",
-    //   ynMonth,
-    //   ynMonth.getMonth(),
-    //   ynMonth.getFullYear()
-    // );
-    // console.log(
-    //   "nextPaydate",
-    //   parseISO(nextPaydate),
-    //   parseISO(nextPaydate).getMonth(),
-    //   parseISO(nextPaydate).getFullYear()
-    // );
-
-    // If it's the end of the month (28th, 29th, 30th, 31st, etc.), but our next paycheck doesn't
-    // arrive until the following month, then we should skip trying to add any money into this
-    // month. Without this check, it would look like we're adding money into April, even though our
-    // next paycheck isn't until May, and that would change once we hit May 1st. By adding this line,
-    // it will actually take our next paycheck into consideration when deciding what month to start on.
-    if (
-      parseISO(nextPaydate).getFullYear() > ynMonth.getFullYear() ||
-      parseISO(nextPaydate).getMonth() > ynMonth.getMonth()
-    ) {
-      continue;
-    }
-
-    let ynMonthCat = null;
-    if (category.useCurrentMonth) {
-      ynMonthCat = ynabMonths[0].categories.find((x) => x.id == category.id);
-      ynMonth = parseISO(ynabMonths[0].month);
-    } else {
-      ynMonthCat = ynabMonths[i].categories.find((x) => x.id == category.id);
-      ynMonth = parseISO(ynabMonths[i].month);
-    }
-    // console.log("Curr Month Category");
-    // console.log(ynMonthCat);
-
-    let totalDesiredMonthAmt = getCategoryAmountModifiedWithoutExtra(category); //.categoryAmount;
-    // console.log("totalDesiredMonthAmt", totalDesiredMonthAmt);
-
-    // If we find a month and we haven't reached the amount needed
-    // for that month, we should use that month. Otherwise, we should skip
-    // to the next month.
-    // console.log({
-    //   foundStartMonth: foundStartMonth,
-    //   useCurrentMonth: category.useCurrentMonth,
-    //   expenseType: category.expenseType,
-    //   currently_budgeted_amount: ynMonthCat.budgeted / 1000,
-    //   totalDesiredMonthAmtCheck: totalDesiredMonthAmt,
-    // });
-
-    let monthNeedsFunding = ynMonthCat.budgeted / 1000 < totalDesiredMonthAmt;
-    let foundTransactions = ynMonthCat.activity !== 0;
-    if (
-      foundStartMonth ||
-      category.expenseType == null ||
-      category.useCurrentMonth ||
-      (monthNeedsFunding &&
-        (category.multipleTransactions ||
-          (!category.multipleTransactions && !foundTransactions)))
-    ) {
-      foundStartMonth = true;
-
-      // console.log(
-      //   "Month: ",
-      //   ynMonth
-      //     .toLocaleString("default", { month: "long" })
-      //     .substring(0, 3)
-      //     .toUpperCase() +
-      //     " " +
-      //     ynMonth.getFullYear()
-      // );
-
-      // Then, once we have a handle on that month, we should figure out
-      // the amount that needs to be posted for that month
-      let amtCurrBudgeted = ynMonthCat.budgeted / 1000;
-      // console.log("amtCurrBudgeted", amtCurrBudgeted);
-      let amtToPost =
-        totalDesiredMonthAmt -
-        (category.useCurrentMonth == 1 ? 0 : amtCurrBudgeted);
-
-      if (amtToPost > totalAmtToPost) {
-        amtToPost = totalAmtToPost;
+      if (CONSOLE_DEBUG) {
+        console.log(
+          "ynMonth      ",
+          ynMonth,
+          ynMonth.getMonth(),
+          ynMonth.getFullYear()
+        );
+        console.log(
+          "nextPaydate  ",
+          dtNextPaydate,
+          dtNextPaydate.getMonth(),
+          dtNextPaydate.getFullYear()
+        );
+        console.log(
+          "dtExpenseDate",
+          dtExpenseDate,
+          dtExpenseDate.getMonth(),
+          dtExpenseDate.getFullYear()
+        );
       }
 
-      // console.log("amtToPost", amtToPost);
+      // If it's the end of the month (28th, 29th, 30th, 31st, etc.), but our next paycheck doesn't
+      // arrive until the following month, then we should skip trying to add any money into this
+      // month. Without this check, it would look like we're adding money into April, even though our
+      // next paycheck isn't until May, and that would change once we hit May 1st. By adding this line,
+      // it will actually take our next paycheck into consideration when deciding what month to start on.
+      if (
+        dtNextPaydate.getFullYear() > ynMonth.getFullYear() ||
+        (dtNextPaydate.getFullYear() == ynMonth.getFullYear() &&
+          dtNextPaydate.getMonth() > ynMonth.getMonth())
+      ) {
+        if (CONSOLE_DEBUG) console.log("skipping...");
+        continue;
+      }
 
-      let monthStr =
-        ynMonth
-          .toLocaleString("default", { month: "long" })
-          .substring(0, 3)
-          .toUpperCase() +
-        " " +
-        ynMonth.getFullYear();
-      if (Math.round(amtToPost * 100) / 100 > 0) {
-        let ex = monthAmountDetails.find((x) => x.month == monthStr);
-        if (ex) {
-          ex.postAmount += amtToPost;
-        } else {
-          monthAmountDetails.push({
-            month: monthStr,
-            postAmount: amtToPost,
-          });
+      if (
+        dtExpenseDate.getFullYear() == ynMonth.getFullYear() &&
+        dtExpenseDate.getMonth() == ynMonth.getMonth() &&
+        category.expenseType &&
+        dtExpenseDate < dtNextPaydate
+      ) {
+        if (CONSOLE_DEBUG) {
+          console.log(
+            "Skipping due to the fact that the bill will already be paid by this time."
+          );
+        }
+        continue;
+      }
+
+      let ynMonthCat = null;
+      if (category.useCurrentMonth) {
+        ynMonthCat = ynabMonths[0].categories.find((x) => x.id == category.id);
+        ynMonth = parseISO(ynabMonths[0].month);
+      } else {
+        ynMonthCat = ynabMonths[i].categories.find((x) => x.id == category.id);
+        ynMonth = parseISO(ynabMonths[i].month);
+      }
+      if (CONSOLE_DEBUG) {
+        console.log("YNAB Category", {
+          id: ynMonthCat["id"],
+          name: ynMonthCat["name"],
+          budgeted: ynMonthCat["budgeted"] / 1000,
+        });
+      }
+
+      let totalDesiredMonthAmt =
+        getCategoryAmountModifiedWithoutExtra(category); //.categoryAmount;
+
+      let monthNeedsFunding = ynMonthCat.budgeted / 1000 < totalDesiredMonthAmt;
+      let foundTransactions = ynMonthCat.activity !== 0;
+
+      // If we find a month and we haven't reached the amount needed
+      // for that month, we should use that month. Otherwise, we should skip
+      // to the next month.
+      if (CONSOLE_DEBUG) {
+        console.log({
+          foundStartMonth: foundStartMonth,
+          useCurrentMonth: category.useCurrentMonth,
+          expenseType: category.expenseType,
+          currently_budgeted_amount: ynMonthCat.budgeted / 1000,
+          totalDesiredMonthAmtCheck: parseFloat(
+            totalDesiredMonthAmt.toFixed(2)
+          ),
+          monthNeedsFunding: monthNeedsFunding,
+          foundTransactions: foundTransactions,
+          multipleTransactions: category.multipleTransactions,
+        });
+      }
+
+      if (
+        foundStartMonth ||
+        category.expenseType == null ||
+        category.useCurrentMonth ||
+        (monthNeedsFunding &&
+          (category.multipleTransactions ||
+            (!category.multipleTransactions && !foundTransactions)))
+      ) {
+        foundStartMonth = true;
+
+        // Then, once we have a handle on that month, we should figure out
+        // the amount that needs to be posted for that month
+        let amtCurrBudgeted = ynMonthCat.budgeted / 1000;
+        let amtCurrAvailable = ynMonthCat.balance / 1000;
+        if (CONSOLE_DEBUG) console.log("  amtCurrBudgeted", amtCurrBudgeted);
+        if (CONSOLE_DEBUG) console.log("  amtCurrAvailable", amtCurrAvailable);
+        let amtToPost =
+          totalDesiredMonthAmt -
+          (category.useCurrentMonth == 1 || category.expenseType == null
+            ? 0
+            : amtCurrBudgeted);
+
+        if (amtToPost > totalAmtToPost) {
+          amtToPost = totalAmtToPost;
         }
 
-        let catExpDate = new Date(category.expenseDate);
-        catExpDate.setDate(1);
-        catExpDate.setHours(0, 0, 0, 0);
+        if (CONSOLE_DEBUG) console.log("  amtToPost", amtToPost);
 
-        if (ynMonth.toISOString() == catExpDate.toISOString()) {
-          category.expenseMonthsDivisor =
-            category.repeatFreqType == "Years"
-              ? category.repeatFreqNum * 12
-              : category.repeatFreqNum;
+        if (
+          dtNextPaydate.getFullYear() == ynMonth.getFullYear() &&
+          dtNextPaydate.getMonth() == ynMonth.getMonth() &&
+          amtToPost > 0 &&
+          category.expenseType == "By Date" &&
+          amtCurrAvailable >= parseFloat(totalDesiredMonthAmt.toFixed(2))
+        ) {
+          if (CONSOLE_DEBUG) console.log("Skipping because of this");
+          continue;
         }
-        // console.log("ynMonth", ynMonth.toISOString());
-        // console.log("expenseDate", catExpDate.toISOString());
 
-        // Then, subtract that amount from the starting amount.
-        totalAmtToPost -= amtToPost;
-        // console.log("TotalAmtToPost left: ", totalAmtToPost);
+        let monthStr =
+          ynMonth
+            .toLocaleString("default", { month: "long" })
+            .substring(0, 3)
+            .toUpperCase() +
+          " " +
+          ynMonth.getFullYear();
+        if (Math.round(amtToPost * 100) / 100 > 0) {
+          let ex = monthAmountDetails.find((x) => x.month == monthStr);
+          if (ex) {
+            ex.postAmount += amtToPost;
+          } else {
+            monthAmountDetails.push({
+              month: monthStr,
+              postAmount: amtToPost,
+            });
+          }
 
-        // If we still have some money left over, move onto the next month
-        // and do the same thing
-        if (totalAmtToPost <= 0) {
-          // console.log("NO MONEY LEFT OVER. SHOULD EXIT!");
-          // console.log(monthAmountDetails);
-          break;
+          if (CONSOLE_DEBUG) {
+            console.log(
+              "  Month: ",
+              ynMonth
+                .toLocaleString("default", { month: "long" })
+                .substring(0, 3)
+                .toUpperCase() +
+                " " +
+                ynMonth.getFullYear()
+            );
+          }
+
+          let catExpDate = new Date(category.expenseDate);
+          catExpDate.setDate(1);
+          catExpDate.setHours(0, 0, 0, 0);
+
+          if (ynMonth.toISOString() == catExpDate.toISOString()) {
+            category.expenseMonthsDivisor =
+              category.repeatFreqType == "Years"
+                ? category.repeatFreqNum * 12
+                : category.repeatFreqNum;
+          }
+          if (CONSOLE_DEBUG) console.log("  ynMonth", ynMonth.toISOString());
+          if (CONSOLE_DEBUG)
+            console.log("  expenseDate", catExpDate.toISOString());
+
+          // Then, subtract that amount from the starting amount.
+          totalAmtToPost -= amtToPost;
+          if (CONSOLE_DEBUG)
+            console.log("  TotalAmtToPost left: ", totalAmtToPost);
+
+          // If we still have some money left over, move onto the next month
+          // and do the same thing
+          if (totalAmtToPost <= 0) {
+            if (CONSOLE_DEBUG)
+              console.log("  NO MONEY LEFT OVER. SHOULD EXIT!");
+            if (CONSOLE_DEBUG) console.log(monthAmountDetails);
+            break;
+          }
         }
       }
     }
   }
+  // }
 
   return monthAmountDetails;
 }
