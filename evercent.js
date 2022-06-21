@@ -1,4 +1,4 @@
-import { parseISO } from "date-fns";
+import { parseISO, addMonths } from "date-fns";
 import Axios from "axios";
 
 import {
@@ -851,12 +851,15 @@ export function getNewListItem(key, id, isParent, isExpanded, props) {
 export function getCategoryListItems(
   userCategoryList,
   monthlyAmount,
-  frequency
+  frequency,
+  mthDetails
 ) {
   let listItems = [];
   let newItem = {};
   for (let i = 0; i < userCategoryList.length; i++) {
     let currItem = userCategoryList[i];
+    console.log("CURR ITEM", currItem);
+
     let groupTotalModified = currItem.categories.reduce((a, b) => {
       return a + getCategoryAmountModified(b);
     }, 0);
@@ -883,6 +886,10 @@ export function getCategoryListItems(
 
     for (let j = 0; j < currItem.categories.length; j++) {
       let currCat = currItem.categories[j];
+      if (currCat.name == "Car Insurance") {
+        console.log("Found car insurance!");
+      }
+
       let catAmtMod = getCategoryAmountModified(currCat);
       // catAmtMod = getAmountByFrequency(catAmtMod, frequency);
       let showOther = currCat.categoryAmount !== catAmtMod;
@@ -925,6 +932,7 @@ export function getCategoryListItemsWithMonths(
 ) {
   let listItems = [];
   let newItem = {};
+  let mthDetails = getMonthDetails();
   for (let i = 0; i < userCategoryList.length; i++) {
     let currItem = userCategoryList[i];
     let groupTotalModified = currItem.categories.reduce((a, b) => {
@@ -1318,15 +1326,67 @@ export function getSetupCategoriesWithMonths(
   return catsWithMonths;
 }
 
+function adjustAmount(amt, cat) {
+  let mthDetails = getMonthDetails();
+  if (mthDetails && Object.keys(mthDetails).length > 0) {
+    let catDueDate = parseISO(cat.expenseDate);
+    let ynabMonth = new Date(
+      catDueDate.getFullYear(),
+      catDueDate.getMonth(),
+      1
+    );
+    let strYnabMonth = ynabMonth.toISOString().substring(0, 10);
+
+    let ynabCat = mthDetails
+      .find((x) => x.month == strYnabMonth)
+      ?.categories.find((x) => x.id == cat.id);
+
+    // Check the YNAB month that the category is due in
+    // If the currently budgeted amount >= newAmt, we need to adjust the amount
+    // If so, recalculate using repeatFreqNum & repeatFreqType
+    if (ynabCat && ynabCat.budgeted / 1000 >= amt) {
+      cat.firstMonthToUse = addMonths(ynabMonth, 1)
+        .toISOString()
+        .substring(0, 10);
+
+      return (
+        cat.categoryAmount /
+        (cat.repeatFreqNum * (cat.repeatFreqType == "Months" ? 1 : 12))
+      );
+    } else {
+      return amt;
+    }
+  }
+  return amt;
+}
+
 export function getCategoryAmountModified(cat) {
+  if (cat.name == "Car Insurance") {
+    console.log("  Finding modified amount");
+  }
+
   if (cat.includeOnChart == 0) {
     return 0;
   }
 
   let newAmt = cat.categoryAmount;
 
+  if (cat.name == "Car Insurance") {
+    console.log("  newAmt", newAmt);
+  }
+
   if (cat.expenseType && cat.expenseType == "By Date") {
     newAmt /= cat.expenseMonthsDivisor;
+
+    // This next check is for the following scenario: Consider 'Car Insurance'
+    // When I first start paying, I'll have some expenseMonthsDivisor which may be different from
+    // the repeat freq num & type. Also, I may already be funded up until that point, where the divisor
+    // would change. But, I'm not changing the divisor until the actual date is met. So, I'll need to check
+    // the YNAB months to see if the category has already funded up until that last month, and if so, recalculate
+    // the modified amount. For example, on 6/21/2022, my car insurance was funded up until 12/01/2022 for 85.72/mo
+    // since my divisor was 7 (for when I started getting paid). Now, on my next check, I should start funding $100/mo
+    // for 6 months, but it still thinks I should do $85.72. So, I'll check to see if the month
+    newAmt = adjustAmount(newAmt, cat);
   }
 
   newAmt += cat.extraAmount || 0;
@@ -1347,6 +1407,16 @@ export function getCategoryAmountModifiedWithoutExtra(cat) {
 
   if (cat.expenseType && cat.expenseType == "By Date") {
     newAmt /= cat.expenseMonthsDivisor;
+
+    // This next check is for the following scenario: Consider 'Car Insurance'
+    // When I first start paying, I'll have some expenseMonthsDivisor which may be different from
+    // the repeat freq num & type. Also, I may already be funded up until that point, where the divisor
+    // would change. But, I'm not changing the divisor until the actual date is met. So, I'll need to check
+    // the YNAB months to see if the category has already funded up until that last month, and if so, recalculate
+    // the modified amount. For example, on 6/21/2022, my car insurance was funded up until 12/01/2022 for 85.72/mo
+    // since my divisor was 7 (for when I started getting paid). Now, on my next check, I should start funding $100/mo
+    // for 6 months, but it still thinks I should do $85.72. So, I'll check to see if the month
+    newAmt = adjustAmount(newAmt, cat);
   }
 
   if (newAmt % 1 > 0) {
@@ -1375,7 +1445,8 @@ export function getMonthAmountDetailsFromYNAB(categoryIn, freq, nextPaydate) {
   let totalAmtToPost = getCategoryAmountModified(category);
   totalAmtToPost = getAmountByFrequency(totalAmtToPost, freq);
 
-  // if (category.name == "(M) Car Detailing") {
+  if (category.name == "Car Insurance") CONSOLE_DEBUG = true;
+
   if (totalAmtToPost > 0) {
     if (CONSOLE_DEBUG) console.log("category", category);
 
@@ -1462,7 +1533,11 @@ export function getMonthAmountDetailsFromYNAB(categoryIn, freq, nextPaydate) {
       let totalDesiredMonthAmt =
         getCategoryAmountModifiedWithoutExtra(category); //.categoryAmount;
 
-      let monthNeedsFunding = ynMonthCat.budgeted / 1000 < totalDesiredMonthAmt;
+      let monthNeedsFunding =
+        ynMonthCat.budgeted / 1000 < totalDesiredMonthAmt &&
+        (category.firstMonthToUse == undefined ||
+          category.firstMonthToUse == null ||
+          ynabMonths[i].month == category.firstMonthToUse);
       let foundTransactions = ynMonthCat.activity !== 0;
 
       // If we find a month and we haven't reached the amount needed
@@ -1477,6 +1552,7 @@ export function getMonthAmountDetailsFromYNAB(categoryIn, freq, nextPaydate) {
           totalDesiredMonthAmtCheck: parseFloat(
             totalDesiredMonthAmt.toFixed(2)
           ),
+          firstMonthToUse: category?.firstMonthToUse,
           monthNeedsFunding: monthNeedsFunding,
           foundTransactions: foundTransactions,
           multipleTransactions: category.multipleTransactions,
@@ -1583,7 +1659,6 @@ export function getMonthAmountDetailsFromYNAB(categoryIn, freq, nextPaydate) {
       }
     }
   }
-  // }
 
   return monthAmountDetails;
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { getCategoryListItems } from "../../evercent";
+import { getCategoryListItems, getMonthDetails } from "../../evercent";
 import BudgetCategoryInfoListItem from "../budget-helper/BudgetCategoryInfoListItem";
 
 function CollapsibleTable({ colNames, data, listName }) {
@@ -9,7 +9,8 @@ function CollapsibleTable({ colNames, data, listName }) {
         return getCategoryListItems(
           data.userCategoryList,
           data.monthlyAmount,
-          data.frequency
+          data.frequency,
+          getMonthDetails()
         );
       default:
         break;
