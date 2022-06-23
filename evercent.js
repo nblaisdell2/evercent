@@ -1445,7 +1445,7 @@ export function getMonthAmountDetailsFromYNAB(categoryIn, freq, nextPaydate) {
   let totalAmtToPost = getCategoryAmountModified(category);
   totalAmtToPost = getAmountByFrequency(totalAmtToPost, freq);
 
-  if (category.name == "Car Insurance") CONSOLE_DEBUG = true;
+  if (category.name == "Runescape") CONSOLE_DEBUG = true;
 
   if (totalAmtToPost > 0) {
     if (CONSOLE_DEBUG) console.log("category", category);
@@ -1537,7 +1537,7 @@ export function getMonthAmountDetailsFromYNAB(categoryIn, freq, nextPaydate) {
         ynMonthCat.budgeted / 1000 < totalDesiredMonthAmt &&
         (category.firstMonthToUse == undefined ||
           category.firstMonthToUse == null ||
-          ynabMonths[i].month == category.firstMonthToUse);
+          ynabMonths[i].month >= category.firstMonthToUse);
       let foundTransactions = ynMonthCat.activity !== 0;
 
       // If we find a month and we haven't reached the amount needed
