@@ -12,6 +12,7 @@ import { useState } from "react";
 
 function AutomationReviewModal(props) {
   const [selectedCatIDs, setSelectedCatIDs] = useState([]);
+  const [showZeros, setShowZeros] = useState(true);
 
   const toggleShowAmountsPerCategory = (category) => {
     let newCatIDs = [...selectedCatIDs];
@@ -113,13 +114,18 @@ function AutomationReviewModal(props) {
         </div>
         <div className="h-[290px] overflow-y-auto border-2 border-black rounded-md p-2">
           <div className="flex justify-between border-b-2 border-black">
-            <div className="font-bold text-xl">Total</div>
+            <div className="font-bold text-xl">
+              <span onClick={() => setShowZeros(!showZeros)}>Total</span>
+            </div>
             <div className="font-bold text-2xl text-green-500">
               {"$" + grandTotal.toFixed(0)}
             </div>
           </div>
           {myListItems.map((v, i) => {
             if (v.month && !selectedCatIDs.includes(v.id)) {
+              return <></>;
+            }
+            if (!showZeros && v.amountNum <= 0) {
               return <></>;
             }
             return (
