@@ -12,7 +12,6 @@ import {
 
 import * as ynab from "./ynab";
 import data from "./data.json";
-import { parse } from "date-fns";
 
 // **************************
 //   User Details Functions
@@ -1445,7 +1444,7 @@ export function getMonthAmountDetailsFromYNAB(categoryIn, freq, nextPaydate) {
   let totalAmtToPost = getCategoryAmountModified(category);
   totalAmtToPost = getAmountByFrequency(totalAmtToPost, freq);
 
-  if (category.name == "Runescape") CONSOLE_DEBUG = true;
+  if (category.name == "License Renewal") CONSOLE_DEBUG = true;
 
   if (totalAmtToPost > 0) {
     if (CONSOLE_DEBUG) console.log("category", category);
@@ -1457,7 +1456,30 @@ export function getMonthAmountDetailsFromYNAB(categoryIn, freq, nextPaydate) {
       );
 
     let ynabMonths = getMonthDetails();
+    ynabMonths = [...ynabMonths];
+
     if (CONSOLE_DEBUG) console.log("ynabMonths", ynabMonths);
+    // if (CONSOLE_DEBUG)
+    //   console.log("ynabMonths[0]", parseISO(ynabMonths[0]?.month));
+    // if (CONSOLE_DEBUG)
+    //   console.log(
+    //     "ynabMonths[0] next",
+    //     addMonths(parseISO(ynabMonths[0]?.month), 1)
+    //       .toISOString()
+    //       .substring(0, 10)
+    //   );
+
+    for (let i = 0; i < 20; i++) {
+      ynabMonths.push({ ...ynabMonths[ynabMonths.length - 1] });
+      ynabMonths[ynabMonths.length - 1].month = addMonths(
+        parseISO(ynabMonths[ynabMonths.length - 1].month),
+        1
+      )
+        .toISOString()
+        .substring(0, 10);
+    }
+
+    // if (CONSOLE_DEBUG) console.log("ynabMonths AFTER", ynabMonths);
 
     let foundStartMonth = false;
     for (let i = 0; i < ynabMonths.length; i++) {
