@@ -446,7 +446,7 @@ const getAutoRunCategoriesToLock = async (results: any) => {
     );
     if (!data) return [];
 
-    const { autoRuns } = data.autoRunData;
+    const { autoRuns } = data;
     const autoRunCategories = getAutoRunCategories(autoRuns);
     for (let j = 0; j < autoRunCategories.length; j++) {
       const currCat = autoRunCategories[j];

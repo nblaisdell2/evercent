@@ -1,21 +1,34 @@
-import { getAutoRunData } from "./autoRun";
-import { getBudget } from "./budget";
-import { getCategoryData } from "./category";
+import { AutoRun, getAutoRunData } from "./autoRun";
+import { Budget, getBudget } from "./budget";
+import { CategoryGroup, ExcludedCategory, getCategoryData } from "./category";
 import { getUserData, PayFrequency, UserData } from "./user";
+
+export type EvercentData = {
+  userData: UserData | undefined;
+  budget: Budget | undefined;
+  categoryGroups: CategoryGroup[];
+  excludedCategories: ExcludedCategory[];
+  autoRuns: AutoRun[];
+  pastRuns: AutoRun[];
+};
 
 export const getAllEvercentData = async (userEmail: string) => {
   const userData = await getUserData(userEmail);
   if (!userData) return;
 
-  return {
-    ...userData,
-    ...getAllDataForUser(
-      userData.userID,
-      userData.budgetID,
-      userData.payFrequency,
-      userData.nextPaydate
-    ),
-  };
+  const data = await getAllDataForUser(
+    userData.userID,
+    userData.budgetID,
+    userData.payFrequency,
+    userData.nextPaydate
+  );
+
+  let allData = {
+    userData,
+    ...data,
+  } as EvercentData;
+
+  return allData;
 };
 
 export const getAllDataForUser = async (
@@ -51,7 +64,7 @@ export const getAllDataForUser = async (
 
   return {
     budget,
-    categoryData,
-    autoRunData,
+    ...categoryData,
+    ...autoRunData,
   };
 };
