@@ -1,10 +1,10 @@
 {
   "name": "evercent",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Library for the Evercent application",
   "homepage": "http://google.com",
   "repository": {
-    "url": ""
+    "url": "https://github.com/nblaisdell2/evercent"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
