@@ -28,6 +28,28 @@ export const getAllEvercentData = async (userEmail: string) => {
     ...data,
   } as EvercentData;
 
+  // Since we included "hidden" & "deleted" items, in order to account for past run
+  // data where the category has since been hidden or deleted in the user's budget, but
+  // we still need the data for displaying the category name and posted amounts, at this point
+  // the code, just before we return it to the Evercent application, we'll adjust each of the
+  // budget months to remove those hidden/deleted categories/groups, as the application expects.
+  allData.budget = {
+    ...allData.budget,
+    months: allData?.budget?.months.map((m) => {
+      return {
+        ...m,
+        groups: m.groups
+          .filter((g) => !g.hidden && !g.deleted)
+          .map((g) => {
+            return {
+              ...g,
+              categories: g.categories.filter((c) => !c.hidden && !c.deleted),
+            };
+          }),
+      };
+    }),
+  } as Budget;
+
   return allData;
 };
 
