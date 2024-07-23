@@ -4,8 +4,8 @@ import { CategoryGroup, ExcludedCategory, getCategoryData } from "./category";
 import { getUserData, PayFrequency, UserData } from "./user";
 
 export type EvercentData = {
-  userData: UserData | undefined;
-  budget: Budget | undefined;
+  userData: UserData | null;
+  budget: Budget | null;
   categoryGroups: CategoryGroup[];
   excludedCategories: ExcludedCategory[];
   autoRuns: AutoRun[];
