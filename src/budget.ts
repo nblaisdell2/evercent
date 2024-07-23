@@ -348,4 +348,7 @@ export const authorizeBudget = async (userID: string, code: string) => {
   if (sqlErr(sqlRes)) return;
 
   await switchBudget(userID, FAKE_BUDGET_ID);
+
+  const redirectURL = process.env.CLIENT_BASE_URL as string;
+  return redirectURL;
 };
