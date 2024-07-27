@@ -108,18 +108,33 @@ export const updateUserDetails = async function (
 //   // });
 // };
 
+type EvercentResponse<T> = {
+  data: T;
+  err: string | undefined | null;
+};
+
+const getResponse = async <T>(
+  data: T,
+  err?: string
+): Promise<EvercentResponse<T>> => {
+  return {
+    data,
+    err,
+  };
+};
+
 export const updateMonthsAheadTarget = async function (
   userID: string,
   budgetID: string,
   newTarget: number
-): Promise<number> {
+): Promise<EvercentResponse<number>> {
   return execute("spEV_UpdateUserMonthsAheadTarget", [
     { name: "UserID", value: userID },
     { name: "BudgetID", value: budgetID },
     { name: "NewTarget", value: newTarget },
   ])
-    .then((res) => newTarget)
-    .catch((err) => -1);
+    .then((res) => getResponse(newTarget))
+    .catch((err) => getResponse(-1, err));
 
   // const queryRes = await execute("spEV_UpdateUserMonthsAheadTarget", [
   //   { name: "UserID", value: userID },
