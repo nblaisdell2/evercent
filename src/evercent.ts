@@ -13,17 +13,29 @@ export type EvercentData = {
 };
 
 export type EvercentResponse<T> = {
-  data: T;
+  data: T | null;
+  message: string | undefined | null;
   err: string | undefined | null;
 };
 
-export const getResponse = async <T>(
-  data: T,
+export const getResponseError = <T>(
   err?: string | undefined | null
-): Promise<EvercentResponse<T>> => {
+): EvercentResponse<T> => {
+  return {
+    data: null,
+    message: err,
+    err,
+  };
+};
+
+export const getResponse = <T>(
+  data: T,
+  message?: string | undefined | null
+): EvercentResponse<T> => {
   return {
     data,
-    err,
+    message,
+    err: null,
   };
 };
 

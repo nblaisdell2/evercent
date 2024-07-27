@@ -1,4 +1,4 @@
-import { EvercentResponse, getResponse } from "./evercent";
+import { EvercentResponse, getResponse, getResponseError } from "./evercent";
 import { log } from "./utils/log";
 import { execute, query, sqlErr } from "./utils/sql";
 import { addMonths, addWeeks } from "date-fns";
@@ -119,6 +119,9 @@ export const updateMonthsAheadTarget = async function (
     { name: "BudgetID", value: budgetID },
     { name: "NewTarget", value: newTarget },
   ]);
-  if (sqlErr(queryRes)) return getResponse(-1, queryRes.error);
-  return getResponse(newTarget);
+  if (sqlErr(queryRes)) return getResponseError(queryRes.error);
+  return getResponse(
+    newTarget,
+    "Updated Months Ahead Target to '" + newTarget + "' for user: " + userID
+  );
 };
