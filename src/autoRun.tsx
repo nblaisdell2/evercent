@@ -19,7 +19,13 @@ import {
 import { sendEmail } from "./utils/email";
 import EvercentAutoRunEmail from "./component/EvercentAutoRunEmail";
 import { format, parseISO } from "date-fns";
-import { getAllDataForUser, getAllEvercentData } from "./evercent";
+import {
+  EvercentResponse,
+  getAllDataForUser,
+  getAllEvercentData,
+  getResponse,
+  getResponseError,
+} from "./evercent";
 
 export type AutoRun = {
   runID: string;
@@ -444,9 +450,9 @@ const getAutoRunCategoriesToLock = async (results: any) => {
       PayFrequency,
       NextPaydate
     );
-    if (!data) return [];
+    if (data.err || !data.data) return [];
 
-    const { autoRuns } = data;
+    const { autoRuns } = data.data;
     const autoRunCategories = getAutoRunCategories(autoRuns);
     for (let j = 0; j < autoRunCategories.length; j++) {
       const currCat = autoRunCategories[j];
@@ -573,7 +579,7 @@ const checkRegExpenseForUpdatedAmount = async (
   return false;
 };
 
-const sendAutoRunResultsEmail = async (
+const generateAutoRunResultsEmail = async (
   emailResults: any,
   userEmail: string,
   runTime: string,
@@ -611,6 +617,45 @@ const sendAutoRunResultsEmail = async (
   await sendAutoRunEmail(userEmail, runTime, sortedResults);
 };
 
+const sendAutoRunEmail = async function (
+  userEmail: string,
+  runTime: string,
+  autoRunGroups: AutoRunCategoryGroup[]
+) {
+  const info = await sendEmail({
+    emailComponent: (
+      <EvercentAutoRunEmail
+        runTime={format(
+          parseISO(new Date(runTime).toISOString()),
+          "MM/dd/yyyy @ h:mma"
+        )}
+        results={autoRunGroups}
+      />
+    ),
+    from: '"Evercent" <nblaisdell2@gmail.com>',
+    to: userEmail,
+    subject: "Budget Automation Results",
+    attachments: [
+      {
+        filename: "evercent_logo.png",
+        path: __dirname + "/../public/evercent_logo.png",
+        cid: "logo",
+      },
+    ],
+  });
+
+  console.log("Message sent: %s", info.messageId);
+};
+
+export const getAutoRunCategories = (
+  autoRuns: AutoRun[]
+): AutoRunCategory[] => {
+  if (!autoRuns[0]) return [];
+  return autoRuns[0].categoryGroups.reduce((prev, curr) => {
+    return [...prev, ...curr.categories];
+  }, [] as AutoRunCategory[]);
+};
+
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 
@@ -620,16 +665,22 @@ export const getAutoRunData = async (
   budgetMonths: BudgetMonth[],
   payFreq: PayFrequency,
   categories: CategoryGroup[]
-) => {
-  log("What are my IDs?", userID, budgetID);
-
+): Promise<
+  EvercentResponse<{
+    autoRuns: AutoRun[];
+    pastRuns: AutoRun[];
+    categoryGroups: CategoryGroup[];
+  } | null>
+> => {
   const queryRes = await query("spEV_GetAutoRunData", [
     { name: "UserID", value: userID },
     { name: "BudgetID", value: budgetID },
   ]);
-  if (sqlErr(queryRes)) return null;
-
-  log("queryRes", queryRes);
+  if (sqlErr(queryRes)) {
+    return getResponseError(
+      "Could not retrieve AutoRun data for user: " + userID
+    );
+  }
 
   // recalculate the posting months for each category, if the autoRuns are set
   // so that we use the correct "nextPaydate", when the user tries to calculate
@@ -674,16 +725,10 @@ export const getAutoRunData = async (
     true
   );
 
-  return { autoRuns, pastRuns, categoryGroups: categories };
-};
-
-export const getAutoRunCategories = (
-  autoRuns: AutoRun[]
-): AutoRunCategory[] => {
-  if (!autoRuns[0]) return [];
-  return autoRuns[0].categoryGroups.reduce((prev, curr) => {
-    return [...prev, ...curr.categories];
-  }, [] as AutoRunCategory[]);
+  return getResponse(
+    { autoRuns, pastRuns, categoryGroups: categories },
+    "Got all AutoRun details for user: " + userID
+  );
 };
 
 export const saveAutoRunDetails = async (
@@ -691,7 +736,7 @@ export const saveAutoRunDetails = async (
   budgetID: string,
   runTime: string,
   toggledCategories: any
-) => {
+): Promise<EvercentResponse<boolean | null>> => {
   // TODO: Figure out format for "ToggledCategories", so we can pass it the correct
   //       object, and format it in here
   const queryRes = await execute("spEV_UpdateAutoRunDetails", [
@@ -703,29 +748,45 @@ export const saveAutoRunDetails = async (
       value: toggledCategories,
     },
   ]);
-  if (sqlErr(queryRes)) return;
+  if (sqlErr(queryRes)) {
+    return getResponseError(
+      "Could not update AutoRun details for user: " + userID
+    );
+  }
 
-  return "";
+  return getResponse(true, "Updated AutoRun details for user: " + userID);
 };
 
-export const cancelAutoRuns = async (userID: string, budgetID: string) => {
+export const cancelAutoRuns = async (
+  userID: string,
+  budgetID: string
+): Promise<EvercentResponse<boolean | null>> => {
   const queryRes = await execute("spEV_CancelAutomationRuns", [
     { name: "UserID", value: userID },
     { name: "BudgetID", value: budgetID },
   ]);
-  if (sqlErr(queryRes)) return;
+  if (sqlErr(queryRes)) {
+    return getResponseError(
+      "Unable to cancel upcoming AutoRuns for user: " + userID
+    );
+  }
 
-  return "Canceled upcoming AutoRuns for user: " + userID;
+  return getResponse(true, "Canceled upcoming AutoRuns for user: " + userID);
 };
 
-export const lockAutoRuns = async () => {
+export const lockAutoRuns = async (): Promise<
+  EvercentResponse<boolean | null>
+> => {
   // 1. Get the AutoRuns to lock for this hour
   let queryRes = await query("spEV_GetAutoRunsToLock", []);
-  if (sqlErr(queryRes)) return;
+  if (sqlErr(queryRes)) {
+    return getResponseError("Unable to retrieve Runs to Lock for this hour!");
+  }
 
   // Check to see if we have any runs to lock.
   // If not, exit early here.
-  if (!queryRes.resultData) return "No AutoRuns to lock. Exiting...";
+  if (!queryRes.resultData)
+    return getResponse(true, "No AutoRuns to lock. Exiting...");
 
   if (!Array.isArray(queryRes.resultData)) {
     queryRes.resultData = [queryRes.resultData];
@@ -733,28 +794,35 @@ export const lockAutoRuns = async () => {
 
   // 2. Then, loop through each Run and...
   const lockedResults = await getAutoRunCategoriesToLock(queryRes.resultData);
-
+  const strLocked = JSON.stringify({ results: lockedResults });
   // 3. Run the stored procedure for locking the results using our JSON
   queryRes = await execute("spEV_LockAutoRuns", [
     {
       name: "LockedResults",
-      value: JSON.stringify({ results: lockedResults }),
+      value: strLocked,
     },
   ]);
-  if (sqlErr(queryRes)) return;
+  if (sqlErr(queryRes)) {
+    return getResponseError(
+      "Could not lock the following AutoRuns: " + strLocked
+    );
+  }
 
-  return "EverCent categories locked successfully!";
+  return getResponse(true, "EverCent categories locked successfully!");
 };
 
-export const runAutomation = async () => {
+export const runAutomation = async (): Promise<
+  EvercentResponse<boolean | null>
+> => {
   let queryRes = await query("spEV_GetAutoRunsLocked", []);
-  if (sqlErr(queryRes)) return;
+  if (sqlErr(queryRes)) {
+    return getResponseError("Could not get locked AutoRuns for this hour!");
+  }
 
   // Check to see if we have any runs to lock.
   // If not, exit early here.
   if (!queryRes.resultData) {
-    log("No Locked AutoRuns found. Exiting automation...");
-    return;
+    return getResponse(true, "No Locked AutoRuns found. Exiting automation...");
   }
 
   if (!Array.isArray(queryRes.resultData)) {
@@ -774,9 +842,11 @@ export const runAutomation = async () => {
     const categoryData = queryData.filter((r) => r.RunID == currRunID);
     const { UserID, UserEmail, BudgetID, RunTime } = categoryData[0];
 
-    const budget = await getBudget(UserID as string, BudgetID as string);
-    if (!budget) return;
+    const budgetRes = await getBudget(UserID as string, BudgetID as string);
+    if (budgetRes.err || !budgetRes.data)
+      return getResponseError(budgetRes.err);
 
+    const budget = budgetRes.data;
     const categoryIDs = getDistinctValues(categoryData, "CategoryID");
     for (let j = 0; j < categoryIDs.length; j++) {
       const currCategoryID = categoryIDs[j];
@@ -886,10 +956,14 @@ export const runAutomation = async () => {
     const cleanupQueryRes = await execute("spEV_CleanupAutomationRun", [
       { name: "RunID", value: currRunID },
     ]);
-    if (sqlErr(cleanupQueryRes)) return;
+    if (sqlErr(cleanupQueryRes)) {
+      return getResponseError(
+        "Could not clean up AutoRun details for user: " + UserID
+      );
+    }
 
     // Send email for this AutoRun/User
-    await sendAutoRunResultsEmail(
+    await generateAutoRunResultsEmail(
       results,
       UserEmail as string,
       RunTime as string,
@@ -897,35 +971,5 @@ export const runAutomation = async () => {
     );
   }
 
-  return "EverCent Automation completed successfully!";
-};
-
-export const sendAutoRunEmail = async function (
-  userEmail: string,
-  runTime: string,
-  autoRunGroups: AutoRunCategoryGroup[]
-) {
-  const info = await sendEmail({
-    emailComponent: (
-      <EvercentAutoRunEmail
-        runTime={format(
-          parseISO(new Date(runTime).toISOString()),
-          "MM/dd/yyyy @ h:mma"
-        )}
-        results={autoRunGroups}
-      />
-    ),
-    from: '"Evercent" <nblaisdell2@gmail.com>',
-    to: userEmail,
-    subject: "Budget Automation Results",
-    attachments: [
-      {
-        filename: "evercent_logo.png",
-        path: __dirname + "/../public/evercent_logo.png",
-        cid: "logo",
-      },
-    ],
-  });
-
-  console.log("Message sent: %s", info.messageId);
+  return getResponse(true, "EverCent Automation completed successfully!");
 };

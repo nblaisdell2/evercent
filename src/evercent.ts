@@ -1,5 +1,5 @@
 import { AutoRun, getAutoRunData } from "./autoRun";
-import { Budget, getBudget } from "./budget";
+import { Budget, getBudget, removeHiddenCategoriesFromBudget } from "./budget";
 import { CategoryGroup, ExcludedCategory, getCategoryData } from "./category";
 import { getUserData, PayFrequency, UserData } from "./user";
 
@@ -39,17 +39,28 @@ export const getResponse = <T>(
   };
 };
 
-export const getAllEvercentData = async (userEmail: string) => {
-  const userData = await getUserData(userEmail);
-  if (!userData) return;
+export const getAllEvercentData = async (
+  userEmail: string
+): Promise<EvercentResponse<EvercentData>> => {
+  const res = await getUserData(userEmail);
+  if (res.err || !res.data) {
+    return getResponseError(
+      "Could not get all Evercent data for user: " + userEmail
+    );
+  }
 
-  const data = await getAllDataForUser(
+  const userData = res.data;
+  const dataRes = await getAllDataForUser(
     userData.userID,
     userData.budgetID,
     userData.payFrequency,
     userData.nextPaydate
   );
+  if (dataRes.err || !dataRes.data) {
+    return getResponseError(dataRes.err);
+  }
 
+  const data = dataRes.data;
   let allData = {
     userData,
     ...data,
@@ -60,24 +71,9 @@ export const getAllEvercentData = async (userEmail: string) => {
   // we still need the data for displaying the category name and posted amounts, at this point
   // the code, just before we return it to the Evercent application, we'll adjust each of the
   // budget months to remove those hidden/deleted categories/groups, as the application expects.
-  allData.budget = {
-    ...allData.budget,
-    months: allData?.budget?.months.map((m) => {
-      return {
-        ...m,
-        groups: m.groups
-          .filter((g) => !g.hidden && !g.deleted)
-          .map((g) => {
-            return {
-              ...g,
-              categories: g.categories.filter((c) => !c.hidden && !c.deleted),
-            };
-          }),
-      };
-    }),
-  } as Budget;
+  allData.budget = removeHiddenCategoriesFromBudget(allData.budget as Budget);
 
-  return allData;
+  return getResponse(allData, "Got ALL Evercent data for user: " + userEmail);
 };
 
 export const getAllDataForUser = async (
@@ -85,35 +81,46 @@ export const getAllDataForUser = async (
   budgetID: string,
   payFrequency: PayFrequency,
   nextPaydate: string
-) => {
+): Promise<EvercentResponse<Omit<EvercentData, "userData">>> => {
   // - Get the current budget/autoRun details for this UserID/BudgetID
-  const budget = await getBudget(userID, budgetID);
-  if (!budget) return;
+  const budgetRes = await getBudget(userID, budgetID);
+  if (budgetRes.err || !budgetRes.data) {
+    return getResponseError(budgetRes.err);
+  }
 
   // log("budget", budget);
 
-  const categoryData = await getCategoryData(
+  const budget = budgetRes.data;
+  const categoryDataRes = await getCategoryData(
     userID,
     budget,
     payFrequency,
     nextPaydate
   );
-  if (!categoryData) return;
+  if (categoryDataRes.err || !categoryDataRes.data) {
+    return getResponseError(categoryDataRes.err);
+  }
 
   // log("categories", categoryData.categoryGroups);
-
-  const autoRunData = await getAutoRunData(
+  const categoryData = categoryDataRes.data;
+  const autoRunDataRes = await getAutoRunData(
     userID,
     budgetID,
     budget.months,
     payFrequency,
     categoryData.categoryGroups
   );
-  if (!autoRunData) return;
+  if (autoRunDataRes.err || !autoRunDataRes.data) {
+    return getResponseError(autoRunDataRes.err);
+  }
 
-  return {
-    budget,
-    ...categoryData,
-    ...autoRunData,
-  };
+  const autoRunData = autoRunDataRes.data;
+  return getResponse(
+    {
+      budget,
+      ...categoryData,
+      ...autoRunData,
+    },
+    "Got remaining Evercent data for user: " + userID
+  );
 };

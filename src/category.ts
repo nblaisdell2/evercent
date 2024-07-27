@@ -19,6 +19,7 @@ import {
   getBudgetCategoryForMonth,
   getBudgetMonth,
 } from "./budget";
+import { EvercentResponse, getResponse, getResponseError } from "./evercent";
 
 // TODO: Can I extract this into its own generic type
 //       when querying the database?
@@ -563,7 +564,12 @@ export const getCategoryData = async (
   budget: Budget,
   payFreq: PayFrequency,
   nextPaydate: string
-) => {
+): Promise<
+  EvercentResponse<{
+    categoryGroups: CategoryGroup[];
+    excludedCategories: ExcludedCategory[];
+  } | null>
+> => {
   const budgetCategories = getBudgetCategories(budget.months[0]).map((bc) => {
     return {
       categoryGroupID: bc.categoryGroupID,
@@ -585,7 +591,11 @@ export const getCategoryData = async (
     { name: "BudgetID", value: budget.id },
     { name: "Details", value: JSON.stringify({ details: budgetCategories }) },
   ]);
-  if (sqlErr(queryRes)) return null;
+  if (sqlErr(queryRes)) {
+    return getResponseError(
+      "Unable to retrieve category details from database for user: " + userID
+    );
+  }
 
   // ========================
   // 2. Assemble category list(s)
@@ -598,17 +608,20 @@ export const getCategoryData = async (
   );
   const excludedCategories = getExcludedCategories(queryRes.resultData[1]);
 
-  return {
-    categoryGroups: categoryDetails,
-    excludedCategories,
-  };
+  return getResponse(
+    {
+      categoryGroups: categoryDetails,
+      excludedCategories,
+    },
+    "Retrieved category details for user: " + userID
+  );
 };
 
 export const updateCategoryDetails = async (
   userID: string,
   budgetID: string,
   categories: BudgetMonthCategory[]
-) => {
+): Promise<EvercentResponse<BudgetMonthCategory[] | null>> => {
   // TODO: Need to figure out how to convert these categories
   //       to the appropriately-formatted details for the query
   const Details = categories as any;
@@ -618,7 +631,11 @@ export const updateCategoryDetails = async (
     { name: "BudgetID", value: budgetID },
     { name: "Details", value: Details },
   ]);
-  if (sqlErr(queryRes)) return;
+  if (sqlErr(queryRes)) {
+    return getResponseError(
+      "Unable to update category details for user: " + userID
+    );
+  }
 
-  return categories;
+  return getResponse(categories, "Got category list for user: " + userID);
 };

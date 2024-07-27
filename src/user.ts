@@ -64,15 +64,18 @@ export const incrementDateByFrequency = (
 
 export const getUserData = async (
   userEmail: string
-): Promise<UserData | null> => {
+): Promise<EvercentResponse<UserData | null>> => {
   log("Getting user details for email: '" + userEmail + "'");
 
   const queryRes = await query("spEV_GetUserData", [
     { name: "UserEmail", value: userEmail },
   ]);
-  if (sqlErr(queryRes)) return null;
+  if (sqlErr(queryRes)) return getResponseError(queryRes.error);
 
-  return createUserData(queryRes.resultData);
+  return getResponse(
+    createUserData(queryRes.resultData),
+    "Created new user: " + queryRes.resultData.UserID
+  );
 };
 
 export const updateUserDetails = async function (
@@ -81,7 +84,7 @@ export const updateUserDetails = async function (
   monthlyIncome: number,
   payFrequency: PayFrequency,
   nextPaydate: string
-): Promise<UserData | null> {
+): Promise<EvercentResponse<UserData | null>> {
   const queryRes = await execute("spEV_UpdateUserDetails", [
     { name: "UserID", value: userID },
     { name: "BudgetID", value: budgetID },
@@ -89,11 +92,14 @@ export const updateUserDetails = async function (
     { name: "PayFrequency", value: payFrequency },
     { name: "NextPaydate", value: nextPaydate },
   ]);
-  if (sqlErr(queryRes)) return null;
-  return queryRes.resultData as UserData;
+  if (sqlErr(queryRes)) return getResponseError(queryRes.error);
+  return getResponse(
+    queryRes.resultData,
+    "Updated User Details for user: " + userID
+  );
 };
 
-// export const updateCategoryDetails = async function () {
+// export const updateCategoryDetails = async function (): Promise<EvercentResponse<UserData | null>> {
 //   const { UserID, BudgetID, Details } = req.body;
 
 //   const queryRes = await execute("spEV_UpdateCategoryDetails", [

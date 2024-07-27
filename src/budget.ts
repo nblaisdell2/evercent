@@ -9,6 +9,7 @@ import ynab, {
 } from "./ynab";
 import { find, generateUUID, sum } from "./utils/util";
 import { execute, sqlErr } from "./utils/sql";
+import { EvercentResponse, getResponse, getResponseError } from "./evercent";
 
 export const FAKE_BUDGET_ID = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEFFFFFF";
 
@@ -178,7 +179,7 @@ const createBudgetCategories = (
   return newCategories;
 };
 
-const removeHiddenCategoriesFromBudget = (budget: Budget) => {
+export const removeHiddenCategoriesFromBudget = (budget: Budget): Budget => {
   return {
     ...budget,
     months: budget.months.map((m) => {
@@ -259,54 +260,48 @@ export const getBudgetCategory = (
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 
-export const updateBudgetCategoryAmount = async (
+export const getBudget = async (
   userID: string,
-  budgetID: string,
-  categoryID: string,
-  month: string,
-  newBudgetedAmount: number
-) => {
-  const updatedCategory = await ynab(
-    userID,
-    budgetID,
-    YnabReq.updateYNABCategoryAmount,
-    categoryID,
-    month,
-    newBudgetedAmount
-  );
-  if (!updatedCategory) return null;
-
-  return `(${userID} / ${budgetID}) // Updated amount for '${
-    updatedCategory.name
-  } (${categoryID})' on '${month}' to '$${Number(newBudgetedAmount).toFixed(
-    2
-  )}'`;
-};
-
-export const getBudget = async (userID: string, budgetID: string) => {
+  budgetID: string
+): Promise<EvercentResponse<Budget | null>> => {
   // Get Budget details from YNAB using their API
   const budget = await ynab(userID, budgetID, YnabReq.getBudget);
-  if (!budget) return null;
+  if (!budget) {
+    return getResponseError(
+      `Could not retrieve budget details from YNAB for user/budget: ${userID} / ${budgetID}`
+    );
+  }
 
   // If we got the YNAB Budget data, convert it into our own
   // Budget object before sending to the user
-  return createBudget(budget);
+  return getResponse(createBudget(budget), "Got budget for user: " + userID);
 };
 
-export const getBudgetsList = async (userID: string) => {
+export const getBudgetsList = async (
+  userID: string
+): Promise<EvercentResponse<Pick<YNABBudget, "id" | "name">[] | null>> => {
   const budgetsList = await ynab(
     userID,
     FAKE_BUDGET_ID,
     YnabReq.getBudgetsList
   );
-  if (!budgetsList) return null;
+  if (!budgetsList) {
+    return getResponseError("Could not get budgets list for user: " + userID);
+  }
 
-  return budgetsList;
+  return getResponse(budgetsList, "Got budgets list for user: " + userID);
 };
 
-export const switchBudget = async (userID: string, newBudgetID: string) => {
+export const switchBudget = async (
+  userID: string,
+  newBudgetID: string
+): Promise<EvercentResponse<string | null>> => {
   const budget = await ynab(userID, newBudgetID, YnabReq.getBudget);
-  if (!budget) return;
+  if (!budget) {
+    return getResponseError(
+      `Could not switch to new budget: ${newBudgetID} (User: ${userID})`
+    );
+  }
 
   if (newBudgetID == FAKE_BUDGET_ID) newBudgetID = budget.id;
 
@@ -323,20 +318,33 @@ export const switchBudget = async (userID: string, newBudgetID: string) => {
       isUpcomingExpense: false,
     };
   });
+  const strCats = JSON.stringify({ details: newCategories });
 
   const queryRes = await execute("spEV_UpdateInitialYNABDetails", [
     { name: "UserID", value: userID },
     { name: "NewBudgetID", value: newBudgetID },
-    { name: "Details", value: JSON.stringify({ details: newCategories }) },
+    { name: "Details", value: strCats },
   ]);
-  if (sqlErr(queryRes)) return;
+  if (sqlErr(queryRes)) {
+    return getResponseError(
+      "Could not update YNAB details in database! " + strCats
+    );
+  }
 
-  return newBudgetID;
+  return getResponse(
+    newBudgetID,
+    `Switched to new budget: ${newBudgetID} (User: ${userID})`
+  );
 };
 
-export const authorizeBudget = async (userID: string, code: string) => {
+export const authorizeBudget = async (
+  userID: string,
+  code: string
+): Promise<EvercentResponse<string | null>> => {
   const newTokens = await getNewAccessTokens(code);
-  if (!newTokens) return;
+  if (!newTokens) {
+    return getResponseError("Could not get new tokens from YNAB API");
+  }
 
   // Save token details in DB for this user
   let sqlRes = await execute("spEV_YNAB_SaveTokenDetails", [
@@ -345,10 +353,44 @@ export const authorizeBudget = async (userID: string, code: string) => {
     { name: "RefreshToken", value: newTokens.refreshToken },
     { name: "ExpirationDate", value: newTokens.expirationDate },
   ]);
-  if (sqlErr(sqlRes)) return;
+  if (sqlErr(sqlRes)) {
+    return getResponseError("Could not updated new tokens in database!");
+  }
 
   await switchBudget(userID, FAKE_BUDGET_ID);
 
   const redirectURL = process.env.CLIENT_BASE_URL as string;
-  return redirectURL;
+  return getResponse(
+    redirectURL,
+    "Please send the user to the redirect URL provided"
+  );
+};
+
+export const updateBudgetCategoryAmount = async (
+  userID: string,
+  budgetID: string,
+  categoryID: string,
+  month: string,
+  newBudgetedAmount: number
+): Promise<EvercentResponse<string | null>> => {
+  const updatedCategory = await ynab(
+    userID,
+    budgetID,
+    YnabReq.updateYNABCategoryAmount,
+    categoryID,
+    month,
+    newBudgetedAmount
+  );
+  if (!updatedCategory) {
+    return getResponseError(
+      `Could not update category amount in budget: ${budgetID} (User: ${userID})`
+    );
+  }
+
+  const updateMsg = `(${userID} / ${budgetID}) // Updated amount for '${
+    updatedCategory.name
+  } (${categoryID})' on '${month}' to '$${Number(newBudgetedAmount).toFixed(
+    2
+  )}'`;
+  return getResponse(updateMsg, updateMsg);
 };
