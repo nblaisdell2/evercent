@@ -93,8 +93,9 @@ function getQueryResponse(
   };
 
   if (typeof res === "string") {
-    queryResponse.error = res;
-    return queryResponse;
+    throw Error(res);
+    // queryResponse.error = res;
+    // return queryResponse;
   }
 
   queryResponse.resultData = { result: "Query ran successfully!" };
@@ -171,9 +172,13 @@ export async function execute(
   spName: string,
   params: QueryParams[]
 ): Promise<QueryResponse> {
-  return getSQLServerResponse(spName, params)
-    .then((res) => getQueryResponse(res, false))
-    .catch((err) => getQueryResponse(err, false));
+  return getSQLServerResponse(spName, params).then((res) =>
+    getQueryResponse(res, false)
+  );
+  // .catch((err) => {
+  //   throw Error(err);
+  //   // return getQueryResponse(err, false);
+  // });
   // const res = await getSQLServerResponse(spName, params);
   // return getQueryResponse(res, false);
 }
@@ -184,9 +189,9 @@ export async function query(
   spName: string,
   params: QueryParams[]
 ): Promise<QueryResponse> {
-  return getSQLServerResponse(spName, params)
-    .then((res) => getQueryResponse(res, true))
-    .catch((err) => getQueryResponse(err, true));
+  return getSQLServerResponse(spName, params).then((res) =>
+    getQueryResponse(res, true)
+  );
   // const res = await getSQLServerResponse(spName, params);
   // return getQueryResponse(res, true);
 }

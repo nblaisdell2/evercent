@@ -118,7 +118,6 @@ export const updateMonthsAheadTarget = async function (
     { name: "BudgetID", value: budgetID },
     { name: "NewTarget", value: newTarget },
   ]).then((queryRes) => {
-    if (sqlErr(queryRes)) throw Error(queryRes.error as string);
     return queryRes.resultData as number;
   });
   // .catch(Promise.reject);
