@@ -118,9 +118,7 @@ export const updateMonthsAheadTarget = async function (
     { name: "BudgetID", value: budgetID },
     { name: "NewTarget", value: newTarget },
   ])
-    .then((queryRes) => {
-      return queryRes.resultData as number;
-    })
+    .then((res) => newTarget)
     .catch((err) => -1);
 
   // const queryRes = await execute("spEV_UpdateUserMonthsAheadTarget", [
