@@ -162,7 +162,7 @@ async function getSQLServerResponse(
     }
 
     const errMsg = error?.originalError.info.message;
-    throw new Error(errMsg);
+    throw Error(errMsg);
   }
 }
 
