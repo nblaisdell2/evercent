@@ -1,6 +1,6 @@
 {
   "name": "evercent",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Library for the Evercent application",
   "homepage": "http://google.com",
   "repository": {
@@ -10,6 +10,7 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
+    "dev": "npm run build && npm run test",
     "build": "tsup",
     "test": "node ./dist/index.js"
   },

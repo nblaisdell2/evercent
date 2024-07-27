@@ -151,7 +151,7 @@ async function getSQLServerResponse(
 
     return sqlRes;
   } catch (error: any) {
-    log(error);
+    // log(error);
     if (error?.code == "ETIMEOUT") {
       return "Query Timed Out!";
     }
@@ -162,7 +162,7 @@ async function getSQLServerResponse(
     }
 
     const errMsg = error?.originalError.info.message;
-    return errMsg;
+    throw new Error(errMsg);
   }
 }
 
