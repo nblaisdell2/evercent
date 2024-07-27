@@ -119,7 +119,7 @@ export const updateMonthsAheadTarget = async function (
   userID: string,
   budgetID: string,
   newTarget: number
-): Promise<EvercentResponse<number>> {
+): Promise<EvercentResponse<{ newTarget: number }>> {
   const queryRes = await execute("spEV_UpdateUserMonthsAheadTarget", [
     { name: "UserID", value: userID },
     { name: "BudgetID", value: budgetID },
@@ -127,7 +127,7 @@ export const updateMonthsAheadTarget = async function (
   ]);
   if (sqlErr(queryRes)) return getResponseError(queryRes.error);
   return getResponse(
-    newTarget,
+    { newTarget },
     "Updated Months Ahead Target to '" + newTarget + "' for user: " + userID
   );
 };

@@ -621,7 +621,7 @@ export const updateCategoryDetails = async (
   userID: string,
   budgetID: string,
   categories: BudgetMonthCategory[]
-): Promise<EvercentResponse<BudgetMonthCategory[] | null>> => {
+): Promise<EvercentResponse<{ categories: BudgetMonthCategory[] } | null>> => {
   // TODO: Need to figure out how to convert these categories
   //       to the appropriately-formatted details for the query
   const Details = categories as any;
@@ -637,5 +637,5 @@ export const updateCategoryDetails = async (
     );
   }
 
-  return getResponse(categories, "Got category list for user: " + userID);
+  return getResponse({ categories }, "Got category list for user: " + userID);
 };

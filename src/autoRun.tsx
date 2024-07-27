@@ -4,7 +4,6 @@ import { execute, query, sqlErr } from "./utils/sql";
 import { find, generateUUID, getDistinctValues, sleep } from "./utils/util";
 import { PayFrequency, getAmountByPayFrequency } from "./user";
 import {
-  Budget,
   BudgetMonth,
   BudgetMonthCategory,
   getBudget,
@@ -22,7 +21,6 @@ import { format, parseISO } from "date-fns";
 import {
   EvercentResponse,
   getAllDataForUser,
-  getAllEvercentData,
   getResponse,
   getResponseError,
 } from "./evercent";
@@ -736,7 +734,7 @@ export const saveAutoRunDetails = async (
   budgetID: string,
   runTime: string,
   toggledCategories: any
-): Promise<EvercentResponse<boolean | null>> => {
+): Promise<EvercentResponse<{ successful: boolean } | null>> => {
   // TODO: Figure out format for "ToggledCategories", so we can pass it the correct
   //       object, and format it in here
   const queryRes = await execute("spEV_UpdateAutoRunDetails", [
@@ -754,13 +752,16 @@ export const saveAutoRunDetails = async (
     );
   }
 
-  return getResponse(true, "Updated AutoRun details for user: " + userID);
+  return getResponse(
+    { successful: true },
+    "Updated AutoRun details for user: " + userID
+  );
 };
 
 export const cancelAutoRuns = async (
   userID: string,
   budgetID: string
-): Promise<EvercentResponse<boolean | null>> => {
+): Promise<EvercentResponse<{ successful: boolean } | null>> => {
   const queryRes = await execute("spEV_CancelAutomationRuns", [
     { name: "UserID", value: userID },
     { name: "BudgetID", value: budgetID },
@@ -771,11 +772,14 @@ export const cancelAutoRuns = async (
     );
   }
 
-  return getResponse(true, "Canceled upcoming AutoRuns for user: " + userID);
+  return getResponse(
+    { successful: true },
+    "Canceled upcoming AutoRuns for user: " + userID
+  );
 };
 
 export const lockAutoRuns = async (): Promise<
-  EvercentResponse<boolean | null>
+  EvercentResponse<{ successful: boolean } | null>
 > => {
   // 1. Get the AutoRuns to lock for this hour
   let queryRes = await query("spEV_GetAutoRunsToLock", []);
@@ -786,7 +790,7 @@ export const lockAutoRuns = async (): Promise<
   // Check to see if we have any runs to lock.
   // If not, exit early here.
   if (!queryRes.resultData)
-    return getResponse(true, "No AutoRuns to lock. Exiting...");
+    return getResponse({ successful: true }, "No AutoRuns to lock. Exiting...");
 
   if (!Array.isArray(queryRes.resultData)) {
     queryRes.resultData = [queryRes.resultData];
@@ -808,11 +812,14 @@ export const lockAutoRuns = async (): Promise<
     );
   }
 
-  return getResponse(true, "EverCent categories locked successfully!");
+  return getResponse(
+    { successful: true },
+    "EverCent categories locked successfully!"
+  );
 };
 
 export const runAutomation = async (): Promise<
-  EvercentResponse<boolean | null>
+  EvercentResponse<{ successful: boolean } | null>
 > => {
   let queryRes = await query("spEV_GetAutoRunsLocked", []);
   if (sqlErr(queryRes)) {
@@ -822,7 +829,10 @@ export const runAutomation = async (): Promise<
   // Check to see if we have any runs to lock.
   // If not, exit early here.
   if (!queryRes.resultData) {
-    return getResponse(true, "No Locked AutoRuns found. Exiting automation...");
+    return getResponse(
+      { successful: true },
+      "No Locked AutoRuns found. Exiting automation..."
+    );
   }
 
   if (!Array.isArray(queryRes.resultData)) {
@@ -971,5 +981,8 @@ export const runAutomation = async (): Promise<
     );
   }
 
-  return getResponse(true, "EverCent Automation completed successfully!");
+  return getResponse(
+    { successful: true },
+    "EverCent Automation completed successfully!"
+  );
 };
