@@ -113,11 +113,18 @@ export const updateMonthsAheadTarget = async function (
   budgetID: string,
   newTarget: number
 ): Promise<number> {
-  const queryRes = await execute("spEV_UpdateUserMonthsAheadTarget", [
+  return execute("spEV_UpdateUserMonthsAheadTarget", [
     { name: "UserID", value: userID },
     { name: "BudgetID", value: budgetID },
     { name: "NewTarget", value: newTarget },
-  ]);
-  if (sqlErr(queryRes)) throw new Error(queryRes.error as string);
-  return queryRes.resultData as number;
+  ])
+    .then((queryRes) => queryRes.resultData as number)
+    .catch((err) => -1);
+  // const queryRes = await execute("spEV_UpdateUserMonthsAheadTarget", [
+  //   { name: "UserID", value: userID },
+  //   { name: "BudgetID", value: budgetID },
+  //   { name: "NewTarget", value: newTarget },
+  // ]);
+  // if (sqlErr(queryRes)) throw new Error(queryRes.error as string);
+  // return queryRes.resultData as number;
 };
