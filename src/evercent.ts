@@ -12,6 +12,21 @@ export type EvercentData = {
   pastRuns: AutoRun[];
 };
 
+export type EvercentResponse<T> = {
+  data: T;
+  err: string | undefined | null;
+};
+
+export const getResponse = async <T>(
+  data: T,
+  err?: string | undefined | null
+): Promise<EvercentResponse<T>> => {
+  return {
+    data,
+    err,
+  };
+};
+
 export const getAllEvercentData = async (userEmail: string) => {
   const userData = await getUserData(userEmail);
   if (!userData) return;

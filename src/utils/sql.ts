@@ -93,9 +93,8 @@ function getQueryResponse(
   };
 
   if (typeof res === "string") {
-    throw Error(res);
-    // queryResponse.error = res;
-    // return queryResponse;
+    queryResponse.error = res;
+    return queryResponse;
   }
 
   queryResponse.resultData = { result: "Query ran successfully!" };
@@ -149,10 +148,8 @@ async function getSQLServerResponse(
   }
   try {
     const sqlRes = await sqlReq.execute(spName);
-
     return sqlRes;
   } catch (error: any) {
-    // log(error);
     if (error?.code == "ETIMEOUT") {
       return "Query Timed Out!";
     }
@@ -172,15 +169,8 @@ export async function execute(
   spName: string,
   params: QueryParams[]
 ): Promise<QueryResponse> {
-  return getSQLServerResponse(spName, params).then((res) =>
-    getQueryResponse(res, false)
-  );
-  // .catch((err) => {
-  //   throw Error(err);
-  //   // return getQueryResponse(err, false);
-  // });
-  // const res = await getSQLServerResponse(spName, params);
-  // return getQueryResponse(res, false);
+  const res = await getSQLServerResponse(spName, params);
+  return getQueryResponse(res, false);
 }
 
 // Execute a stored procedure, and retreive the
@@ -189,11 +179,8 @@ export async function query(
   spName: string,
   params: QueryParams[]
 ): Promise<QueryResponse> {
-  return getSQLServerResponse(spName, params).then((res) =>
-    getQueryResponse(res, true)
-  );
-  // const res = await getSQLServerResponse(spName, params);
-  // return getQueryResponse(res, true);
+  const res = await getSQLServerResponse(spName, params);
+  return getQueryResponse(res, true);
 }
 
 export const sqlErr = (val: QueryResponse) => {

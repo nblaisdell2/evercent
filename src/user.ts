@@ -1,3 +1,4 @@
+import { EvercentResponse, getResponse } from "./evercent";
 import { log } from "./utils/log";
 import { execute, query, sqlErr } from "./utils/sql";
 import { addMonths, addWeeks } from "date-fns";
@@ -108,39 +109,16 @@ export const updateUserDetails = async function (
 //   // });
 // };
 
-type EvercentResponse<T> = {
-  data: T;
-  err: string | undefined | null;
-};
-
-const getResponse = async <T>(
-  data: T,
-  err?: string
-): Promise<EvercentResponse<T>> => {
-  return {
-    data,
-    err,
-  };
-};
-
 export const updateMonthsAheadTarget = async function (
   userID: string,
   budgetID: string,
   newTarget: number
 ): Promise<EvercentResponse<number>> {
-  return execute("spEV_UpdateUserMonthsAheadTarget", [
+  const queryRes = await execute("spEV_UpdateUserMonthsAheadTarget", [
     { name: "UserID", value: userID },
     { name: "BudgetID", value: budgetID },
     { name: "NewTarget", value: newTarget },
-  ])
-    .then((res) => getResponse(newTarget))
-    .catch((err) => getResponse(-1, err));
-
-  // const queryRes = await execute("spEV_UpdateUserMonthsAheadTarget", [
-  //   { name: "UserID", value: userID },
-  //   { name: "BudgetID", value: budgetID },
-  //   { name: "NewTarget", value: newTarget },
-  // ]);
-  // if (sqlErr(queryRes)) throw new Error(queryRes.error as string);
-  // return queryRes.resultData as number;
+  ]);
+  if (sqlErr(queryRes)) return getResponse(-1, queryRes.error);
+  return getResponse(newTarget);
 };

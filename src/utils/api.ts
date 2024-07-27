@@ -58,7 +58,6 @@ export async function getAPIResponse({
 
   log("API Running:", method, url);
 
-  // return { data: "", error: "", headers: {} as AxiosResponseHeaders };
   return instance({
     url,
     method,
