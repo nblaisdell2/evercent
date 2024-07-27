@@ -163,7 +163,7 @@ async function getSQLServerResponse(
     }
 
     const errMsg = error?.originalError.info.message;
-    throw Error(errMsg);
+    return errMsg;
   }
 }
 
