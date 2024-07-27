@@ -171,8 +171,11 @@ export async function execute(
   spName: string,
   params: QueryParams[]
 ): Promise<QueryResponse> {
-  const res = await getSQLServerResponse(spName, params);
-  return getQueryResponse(res, false);
+  return getSQLServerResponse(spName, params)
+    .then((res) => getQueryResponse(res, false))
+    .catch((err) => getQueryResponse(err, false));
+  // const res = await getSQLServerResponse(spName, params);
+  // return getQueryResponse(res, false);
 }
 
 // Execute a stored procedure, and retreive the
@@ -181,8 +184,11 @@ export async function query(
   spName: string,
   params: QueryParams[]
 ): Promise<QueryResponse> {
-  const res = await getSQLServerResponse(spName, params);
-  return getQueryResponse(res, true);
+  return getSQLServerResponse(spName, params)
+    .then((res) => getQueryResponse(res, true))
+    .catch((err) => getQueryResponse(err, true));
+  // const res = await getSQLServerResponse(spName, params);
+  // return getQueryResponse(res, true);
 }
 
 export const sqlErr = (val: QueryResponse) => {
