@@ -39,10 +39,12 @@ export const getResponse = <T>(
   };
 };
 
-export const getAllEvercentData = async (userEmail: {
+export const getAllEvercentData = async ({
+  userEmail,
+}: {
   userEmail: string;
 }): Promise<EvercentResponse<EvercentData>> => {
-  const res = await getUserData(userEmail);
+  const res = await getUserData({ userEmail });
   if (res.err || !res.data) {
     return getResponseError(
       "Could not get all Evercent data for user: " + userEmail
