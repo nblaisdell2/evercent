@@ -24,6 +24,7 @@
   "dependencies": {
     "@react-email/components": "0.0.11",
     "@react-email/render": "0.0.9",
+    "@trpc/server": "^10.45.2",
     "@types/axios": "^0.14.0",
     "@types/express": "^4.17.17",
     "@types/http-errors": "^2.0.1",
@@ -42,7 +43,8 @@
     "tsup": "^8.2.1",
     "typescript": "^5.5.3",
     "uuid": "^9.0.0",
-    "winston": "^3.10.0"
+    "winston": "^3.10.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/nodemailer": "^6.4.14",

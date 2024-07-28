@@ -48,6 +48,7 @@ export async function sendEmailMessage({
   from,
   subject,
   attachments,
+  useHTML,
 }: {
   message: string;
   to: string;
@@ -58,6 +59,7 @@ export async function sendEmailMessage({
     path: string;
     cid: string;
   }[];
+  useHTML?: boolean;
 }) {
   const transporter = createTransport({
     host: "smtp.gmail.com",
@@ -70,13 +72,19 @@ export async function sendEmailMessage({
     },
   });
 
-  const info = await transporter.sendMail({
+  let emailOpts = {
     from, // sender address
     to, // list of receivers
     subject, // Subject line
-    text: message, // html body
     attachments,
-  });
+  } as any;
+
+  if (useHTML) {
+    emailOpts.html = message;
+  } else {
+    emailOpts.text = message;
+  }
+  const info = await transporter.sendMail(emailOpts);
 
   return info;
 }
