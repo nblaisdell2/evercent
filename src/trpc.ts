@@ -1,6 +1,5 @@
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
-import * as trpcExpress from "@trpc/server/adapters/express";
 import { logError } from "./utils/log";
 import { sendEmailMessage } from "./utils/email";
 import { EvercentResponse, getAllEvercentData } from "./evercent";
@@ -65,68 +64,40 @@ export type FnType<T> = T extends (...args: any) => any
   ? T["data"]
   : T;
 
-// created for each request
-export const createContext = ({
-  req,
-  res,
-}: trpcExpress.CreateExpressContextOptions) => ({}); // no context
-type Context = Awaited<ReturnType<typeof createContext>>;
+const t = initTRPC.create();
 
-export const ctx = initTRPC.context<Context>().create();
-// type TContext = typeof ctx;
+export const router = t.router;
+export const publicProcedure = t.procedure;
 
-// export const getProc = (
-//   fn: (...args: any) => Promise<EvercentResponse<any>>,
-//   mutate: boolean
-// ) => {
-//   if (mutate) {
-//     return ctx.procedure
-//       .input(z.custom<Parameters<typeof fn>[0]>())
-//       .mutation(async (opts) => {
-//         const response = await fn(opts.input);
-//         if (response.err) sendErrorEmail(mutate, response, opts);
-//         return response;
-//       });
-//   } else {
-//     return ctx.procedure
-//       .input(z.custom<Parameters<typeof fn>[0]>())
-//       .query(async (opts) => {
-//         const response = await fn(opts.input);
-//         if (response.err) sendErrorEmail(mutate, response, opts);
-//         return response;
-//       });
-//   }
-// };
-
-export const appRouter = ctx.router({
-  getAPIStatus: ctx.procedure.query(async (opts) => {
+export const appRouter = router({
+  getAPIStatus: publicProcedure.query(async (opts) => {
     const response = await checkAPIStatus();
     if (response.err) sendErrorEmail(false, response, opts);
     return response;
   }),
-  user: ctx.router({
-    getAllUserData: ctx.procedure
+  user: router({
+    getAllUserData: publicProcedure
       .input(z.custom<Parameters<typeof getAllEvercentData>[0]>())
       .query(async (opts) => {
         const response = await getAllEvercentData(opts.input);
         if (response.err) sendErrorEmail(false, response, opts);
         return response;
       }),
-    updateUserDetails: ctx.procedure
+    updateUserDetails: publicProcedure
       .input(z.custom<Parameters<typeof updateUserDetails>[0]>())
       .mutation(async (opts) => {
         const response = await updateUserDetails(opts.input);
         if (response.err) sendErrorEmail(true, response, opts);
         return response;
       }),
-    updateCategoryDetails: ctx.procedure
+    updateCategoryDetails: publicProcedure
       .input(z.custom<Parameters<typeof updateCategoryDetails>[0]>())
       .mutation(async (opts) => {
         const response = await updateCategoryDetails(opts.input);
         if (response.err) sendErrorEmail(true, response, opts);
         return response;
       }),
-    updateMonthsAheadTarget: ctx.procedure
+    updateMonthsAheadTarget: publicProcedure
       .input(z.custom<Parameters<typeof updateMonthsAheadTarget>[0]>())
       .mutation(async (opts) => {
         const response = await updateMonthsAheadTarget(opts.input);
@@ -134,14 +105,14 @@ export const appRouter = ctx.router({
         return response;
       }),
   }),
-  //   budget: ctx.router({
+  //   budget: router({
   //     //   connectToYNAB: getProc(connecttoyna, false),
   //     getBudgetsList: getProc(getBudgetsList, false),
   //     switchBudget: getProc(switchBudget, true),
   //     authorizeBudget: getProc(authorizeBudget, true),
   //     updateBudgetCategoryAmount: getProc(updateBudgetCategoryAmount, true),
   //   }),
-  //   autoRun: ctx.router({
+  //   autoRun: router({
   //     saveAutoRunDetails: getProc(saveAutoRunDetails, true),
   //     cancelAutoRuns: getProc(cancelAutoRuns, true),
   //     lockAutoRuns: getProc(lockAutoRuns, true),
