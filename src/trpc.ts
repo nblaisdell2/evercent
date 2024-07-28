@@ -75,10 +75,6 @@ type Context = Awaited<ReturnType<typeof createContext>>;
 export const ctx = initTRPC.context<Context>().create();
 type TContext = typeof ctx;
 
-export const createRouter = (ctx: TContext, procs: any) => {
-  return ctx.router(procs);
-};
-
 export const getProc = (
   ctx: TContext,
   fn: (...args: any) => Promise<EvercentResponse<any>>,
@@ -103,22 +99,22 @@ export const getProc = (
   }
 };
 
-export const appRouter = createRouter(ctx, {
+export const appRouter = ctx.router({
   getAPIStatus: getProc(ctx, checkAPIStatus, false),
-  user: createRouter(ctx, {
+  user: ctx.router({
     getAllUserData: getProc(ctx, getAllEvercentData, false),
     updateUserDetails: getProc(ctx, updateUserDetails, true),
     updateCategoryDetails: getProc(ctx, updateCategoryDetails, true),
     updateMonthsAheadTarget: getProc(ctx, updateMonthsAheadTarget, true),
   }),
-  budget: createRouter(ctx, {
+  budget: ctx.router({
     //   connectToYNAB: getProc(ctx, connecttoyna, false),
     getBudgetsList: getProc(ctx, getBudgetsList, false),
     switchBudget: getProc(ctx, switchBudget, true),
     authorizeBudget: getProc(ctx, authorizeBudget, true),
     updateBudgetCategoryAmount: getProc(ctx, updateBudgetCategoryAmount, true),
   }),
-  autoRun: createRouter(ctx, {
+  autoRun: ctx.router({
     saveAutoRunDetails: getProc(ctx, saveAutoRunDetails, true),
     cancelAutoRuns: getProc(ctx, cancelAutoRuns, true),
     lockAutoRuns: getProc(ctx, lockAutoRuns, true),
