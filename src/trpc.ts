@@ -73,53 +73,80 @@ export const createContext = ({
 type Context = Awaited<ReturnType<typeof createContext>>;
 
 export const ctx = initTRPC.context<Context>().create();
-type TContext = typeof ctx;
+// type TContext = typeof ctx;
 
-export const getProc = (
-  ctx: TContext,
-  fn: (...args: any) => Promise<EvercentResponse<any>>,
-  mutate: boolean
-) => {
-  if (mutate) {
-    return ctx.procedure
-      .input(z.custom<Parameters<typeof fn>[0]>())
-      .mutation(async (opts) => {
-        const response = await fn(opts.input);
-        if (response.err) sendErrorEmail(mutate, response, opts);
-        return response;
-      });
-  } else {
-    return ctx.procedure
-      .input(z.custom<Parameters<typeof fn>[0]>())
-      .query(async (opts) => {
-        const response = await fn(opts.input);
-        if (response.err) sendErrorEmail(mutate, response, opts);
-        return response;
-      });
-  }
-};
+// export const getProc = (
+//   fn: (...args: any) => Promise<EvercentResponse<any>>,
+//   mutate: boolean
+// ) => {
+//   if (mutate) {
+//     return ctx.procedure
+//       .input(z.custom<Parameters<typeof fn>[0]>())
+//       .mutation(async (opts) => {
+//         const response = await fn(opts.input);
+//         if (response.err) sendErrorEmail(mutate, response, opts);
+//         return response;
+//       });
+//   } else {
+//     return ctx.procedure
+//       .input(z.custom<Parameters<typeof fn>[0]>())
+//       .query(async (opts) => {
+//         const response = await fn(opts.input);
+//         if (response.err) sendErrorEmail(mutate, response, opts);
+//         return response;
+//       });
+//   }
+// };
 
 export const appRouter = ctx.router({
-  getAPIStatus: getProc(ctx, checkAPIStatus, false),
+  getAPIStatus: ctx.procedure.query(async (opts) => {
+    const response = await checkAPIStatus();
+    if (response.err) sendErrorEmail(false, response, opts);
+    return response;
+  }),
   user: ctx.router({
-    getAllUserData: getProc(ctx, getAllEvercentData, false),
-    updateUserDetails: getProc(ctx, updateUserDetails, true),
-    updateCategoryDetails: getProc(ctx, updateCategoryDetails, true),
-    updateMonthsAheadTarget: getProc(ctx, updateMonthsAheadTarget, true),
+    getAllUserData: ctx.procedure
+      .input(z.custom<Parameters<typeof getAllEvercentData>[0]>())
+      .query(async (opts) => {
+        const response = await getAllEvercentData(opts.input);
+        if (response.err) sendErrorEmail(false, response, opts);
+        return response;
+      }),
+    updateUserDetails: ctx.procedure
+      .input(z.custom<Parameters<typeof updateUserDetails>[0]>())
+      .mutation(async (opts) => {
+        const response = await updateUserDetails(opts.input);
+        if (response.err) sendErrorEmail(true, response, opts);
+        return response;
+      }),
+    updateCategoryDetails: ctx.procedure
+      .input(z.custom<Parameters<typeof updateCategoryDetails>[0]>())
+      .mutation(async (opts) => {
+        const response = await updateCategoryDetails(opts.input);
+        if (response.err) sendErrorEmail(true, response, opts);
+        return response;
+      }),
+    updateMonthsAheadTarget: ctx.procedure
+      .input(z.custom<Parameters<typeof updateMonthsAheadTarget>[0]>())
+      .mutation(async (opts) => {
+        const response = await updateMonthsAheadTarget(opts.input);
+        if (response.err) sendErrorEmail(true, response, opts);
+        return response;
+      }),
   }),
-  budget: ctx.router({
-    //   connectToYNAB: getProc(ctx, connecttoyna, false),
-    getBudgetsList: getProc(ctx, getBudgetsList, false),
-    switchBudget: getProc(ctx, switchBudget, true),
-    authorizeBudget: getProc(ctx, authorizeBudget, true),
-    updateBudgetCategoryAmount: getProc(ctx, updateBudgetCategoryAmount, true),
-  }),
-  autoRun: ctx.router({
-    saveAutoRunDetails: getProc(ctx, saveAutoRunDetails, true),
-    cancelAutoRuns: getProc(ctx, cancelAutoRuns, true),
-    lockAutoRuns: getProc(ctx, lockAutoRuns, true),
-    runAutomation: getProc(ctx, runAutomation, true),
-  }),
+  //   budget: ctx.router({
+  //     //   connectToYNAB: getProc(connecttoyna, false),
+  //     getBudgetsList: getProc(getBudgetsList, false),
+  //     switchBudget: getProc(switchBudget, true),
+  //     authorizeBudget: getProc(authorizeBudget, true),
+  //     updateBudgetCategoryAmount: getProc(updateBudgetCategoryAmount, true),
+  //   }),
+  //   autoRun: ctx.router({
+  //     saveAutoRunDetails: getProc(saveAutoRunDetails, true),
+  //     cancelAutoRuns: getProc(cancelAutoRuns, true),
+  //     lockAutoRuns: getProc(lockAutoRuns, true),
+  //     runAutomation: getProc(runAutomation, true),
+  //   }),
 });
 
 // export type definition of API
