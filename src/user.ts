@@ -62,9 +62,11 @@ export const incrementDateByFrequency = (
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 
-export const getUserData = async (
-  userEmail: string
-): Promise<EvercentResponse<UserData | null>> => {
+export const getUserData = async ({
+  userEmail,
+}: {
+  userEmail: string;
+}): Promise<EvercentResponse<UserData | null>> => {
   log("Getting user details for email: '" + userEmail + "'");
 
   const queryRes = await query("spEV_GetUserData", [
@@ -78,13 +80,19 @@ export const getUserData = async (
   );
 };
 
-export const updateUserDetails = async function (
-  userID: string,
-  budgetID: string,
-  monthlyIncome: number,
-  payFrequency: PayFrequency,
-  nextPaydate: string
-): Promise<EvercentResponse<UserData | null>> {
+export const updateUserDetails = async function ({
+  userID,
+  budgetID,
+  monthlyIncome,
+  payFrequency,
+  nextPaydate,
+}: {
+  userID: string;
+  budgetID: string;
+  monthlyIncome: number;
+  payFrequency: PayFrequency;
+  nextPaydate: string;
+}): Promise<EvercentResponse<UserData | null>> {
   const queryRes = await execute("spEV_UpdateUserDetails", [
     { name: "UserID", value: userID },
     { name: "BudgetID", value: budgetID },
@@ -115,11 +123,15 @@ export const updateUserDetails = async function (
 //   // });
 // };
 
-export const updateMonthsAheadTarget = async function (
-  userID: string,
-  budgetID: string,
-  newTarget: number
-): Promise<EvercentResponse<{ newTarget: number }>> {
+export const updateMonthsAheadTarget = async function ({
+  userID,
+  budgetID,
+  newTarget,
+}: {
+  userID: string;
+  budgetID: string;
+  newTarget: number;
+}): Promise<EvercentResponse<{ newTarget: number }>> {
   const queryRes = await execute("spEV_UpdateUserMonthsAheadTarget", [
     { name: "UserID", value: userID },
     { name: "BudgetID", value: budgetID },

@@ -496,13 +496,13 @@ const postAmountToBudget = async (
   const formattedMonth = new Date(category.PostingMonth)
     .toISOString()
     .substring(0, 10);
-  const result = await updateBudgetCategoryAmount(
+  const result = await updateBudgetCategoryAmount({
     userID,
     budgetID,
-    category.CategoryID,
-    formattedMonth,
-    newBudgeted
-  );
+    categoryID: category.CategoryID,
+    month: formattedMonth,
+    newBudgetedAmount: newBudgeted,
+  });
   if (!result) return;
 
   log("  Result from YNAB:", result);
@@ -657,13 +657,19 @@ export const getAutoRunCategories = (
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 
-export const getAutoRunData = async (
-  userID: string,
-  budgetID: string,
-  budgetMonths: BudgetMonth[],
-  payFreq: PayFrequency,
-  categories: CategoryGroup[]
-): Promise<
+export const getAutoRunData = async ({
+  userID,
+  budgetID,
+  budgetMonths,
+  payFrequency,
+  categories,
+}: {
+  userID: string;
+  budgetID: string;
+  budgetMonths: BudgetMonth[];
+  payFrequency: PayFrequency;
+  categories: CategoryGroup[];
+}): Promise<
   EvercentResponse<{
     autoRuns: AutoRun[];
     pastRuns: AutoRun[];
@@ -694,7 +700,7 @@ export const getAutoRunData = async (
             postingMonths: getPostingMonths(
               c,
               budgetMonths,
-              payFreq,
+              payFrequency,
               new Date(queryRes.resultData[0][0].RunTime).toISOString()
             ),
           };
@@ -709,7 +715,7 @@ export const getAutoRunData = async (
     queryRes.resultData[1],
     categories,
     budgetMonths,
-    payFreq,
+    payFrequency,
     false
   );
 
@@ -719,7 +725,7 @@ export const getAutoRunData = async (
     queryRes.resultData[3],
     categories,
     budgetMonths,
-    payFreq,
+    payFrequency,
     true
   );
 
@@ -729,12 +735,17 @@ export const getAutoRunData = async (
   );
 };
 
-export const saveAutoRunDetails = async (
-  userID: string,
-  budgetID: string,
-  runTime: string,
-  toggledCategories: any
-): Promise<EvercentResponse<{ successful: boolean } | null>> => {
+export const saveAutoRunDetails = async ({
+  userID,
+  budgetID,
+  runTime,
+  toggledCategories,
+}: {
+  userID: string;
+  budgetID: string;
+  runTime: string;
+  toggledCategories: any;
+}): Promise<EvercentResponse<{ successful: boolean } | null>> => {
   // TODO: Figure out format for "ToggledCategories", so we can pass it the correct
   //       object, and format it in here
   const queryRes = await execute("spEV_UpdateAutoRunDetails", [
@@ -758,10 +769,13 @@ export const saveAutoRunDetails = async (
   );
 };
 
-export const cancelAutoRuns = async (
-  userID: string,
-  budgetID: string
-): Promise<EvercentResponse<{ successful: boolean } | null>> => {
+export const cancelAutoRuns = async ({
+  userID,
+  budgetID,
+}: {
+  userID: string;
+  budgetID: string;
+}): Promise<EvercentResponse<{ successful: boolean } | null>> => {
   const queryRes = await execute("spEV_CancelAutomationRuns", [
     { name: "UserID", value: userID },
     { name: "BudgetID", value: budgetID },
@@ -852,7 +866,10 @@ export const runAutomation = async (): Promise<
     const categoryData = queryData.filter((r) => r.RunID == currRunID);
     const { UserID, UserEmail, BudgetID, RunTime } = categoryData[0];
 
-    const budgetRes = await getBudget(UserID as string, BudgetID as string);
+    const budgetRes = await getBudget({
+      userID: UserID as string,
+      budgetID: BudgetID as string,
+    });
     if (budgetRes.err || !budgetRes.data)
       return getResponseError(budgetRes.err);
 

@@ -559,12 +559,17 @@ export const dueDateAndAmountSet = (
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 
-export const getCategoryData = async (
-  userID: string,
-  budget: Budget,
-  payFreq: PayFrequency,
-  nextPaydate: string
-): Promise<
+export const getCategoryData = async ({
+  userID,
+  budget,
+  payFrequency,
+  nextPaydate,
+}: {
+  userID: string;
+  budget: Budget;
+  payFrequency: PayFrequency;
+  nextPaydate: string;
+}): Promise<
   EvercentResponse<{
     categoryGroups: CategoryGroup[];
     excludedCategories: ExcludedCategory[];
@@ -603,7 +608,7 @@ export const getCategoryData = async (
   const categoryDetails = createCategoryGroupList(
     queryRes.resultData[0],
     budget,
-    payFreq,
+    payFrequency,
     nextPaydate
   );
   const excludedCategories = getExcludedCategories(queryRes.resultData[1]);
@@ -617,11 +622,15 @@ export const getCategoryData = async (
   );
 };
 
-export const updateCategoryDetails = async (
-  userID: string,
-  budgetID: string,
-  categories: BudgetMonthCategory[]
-): Promise<EvercentResponse<{ categories: BudgetMonthCategory[] } | null>> => {
+export const updateCategoryDetails = async ({
+  userID,
+  budgetID,
+  categories,
+}: {
+  userID: string;
+  budgetID: string;
+  categories: BudgetMonthCategory[];
+}): Promise<EvercentResponse<{ categories: BudgetMonthCategory[] } | null>> => {
   // TODO: Need to figure out how to convert these categories
   //       to the appropriately-formatted details for the query
   const Details = categories as any;

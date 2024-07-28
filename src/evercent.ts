@@ -39,9 +39,9 @@ export const getResponse = <T>(
   };
 };
 
-export const getAllEvercentData = async (
-  userEmail: string
-): Promise<EvercentResponse<EvercentData>> => {
+export const getAllEvercentData = async (userEmail: {
+  userEmail: string;
+}): Promise<EvercentResponse<EvercentData>> => {
   const res = await getUserData(userEmail);
   if (res.err || !res.data) {
     return getResponseError(
@@ -83,7 +83,7 @@ export const getAllDataForUser = async (
   nextPaydate: string
 ): Promise<EvercentResponse<Omit<EvercentData, "userData">>> => {
   // - Get the current budget/autoRun details for this UserID/BudgetID
-  const budgetRes = await getBudget(userID, budgetID);
+  const budgetRes = await getBudget({ userID, budgetID });
   if (budgetRes.err || !budgetRes.data) {
     return getResponseError(budgetRes.err);
   }
@@ -91,25 +91,25 @@ export const getAllDataForUser = async (
   // log("budget", budget);
 
   const budget = budgetRes.data;
-  const categoryDataRes = await getCategoryData(
+  const categoryDataRes = await getCategoryData({
     userID,
     budget,
     payFrequency,
-    nextPaydate
-  );
+    nextPaydate,
+  });
   if (categoryDataRes.err || !categoryDataRes.data) {
     return getResponseError(categoryDataRes.err);
   }
 
   // log("categories", categoryData.categoryGroups);
   const categoryData = categoryDataRes.data;
-  const autoRunDataRes = await getAutoRunData(
+  const autoRunDataRes = await getAutoRunData({
     userID,
     budgetID,
-    budget.months,
+    budgetMonths: budget.months,
     payFrequency,
-    categoryData.categoryGroups
-  );
+    categories: categoryData.categoryGroups,
+  });
   if (autoRunDataRes.err || !autoRunDataRes.data) {
     return getResponseError(autoRunDataRes.err);
   }

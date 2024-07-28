@@ -260,10 +260,13 @@ export const getBudgetCategory = (
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 
-export const getBudget = async (
-  userID: string,
-  budgetID: string
-): Promise<EvercentResponse<Budget | null>> => {
+export const getBudget = async ({
+  userID,
+  budgetID,
+}: {
+  userID: string;
+  budgetID: string;
+}): Promise<EvercentResponse<Budget | null>> => {
   // Get Budget details from YNAB using their API
   const budget = await ynab(userID, budgetID, YnabReq.getBudget);
   if (!budget) {
@@ -277,9 +280,11 @@ export const getBudget = async (
   return getResponse(createBudget(budget), "Got budget for user: " + userID);
 };
 
-export const getBudgetsList = async (
-  userID: string
-): Promise<EvercentResponse<Pick<YNABBudget, "id" | "name">[] | null>> => {
+export const getBudgetsList = async ({
+  userID,
+}: {
+  userID: string;
+}): Promise<EvercentResponse<Pick<YNABBudget, "id" | "name">[] | null>> => {
   const budgetsList = await ynab(
     userID,
     FAKE_BUDGET_ID,
@@ -292,10 +297,13 @@ export const getBudgetsList = async (
   return getResponse(budgetsList, "Got budgets list for user: " + userID);
 };
 
-export const switchBudget = async (
-  userID: string,
-  newBudgetID: string
-): Promise<EvercentResponse<{ newBudgetID: string } | null>> => {
+export const switchBudget = async ({
+  userID,
+  newBudgetID,
+}: {
+  userID: string;
+  newBudgetID: string;
+}): Promise<EvercentResponse<{ newBudgetID: string } | null>> => {
   const budget = await ynab(userID, newBudgetID, YnabReq.getBudget);
   if (!budget) {
     return getResponseError(
@@ -337,10 +345,13 @@ export const switchBudget = async (
   );
 };
 
-export const authorizeBudget = async (
-  userID: string,
-  code: string
-): Promise<EvercentResponse<{ redirectURL: string } | null>> => {
+export const authorizeBudget = async ({
+  userID,
+  code,
+}: {
+  userID: string;
+  code: string;
+}): Promise<EvercentResponse<{ redirectURL: string } | null>> => {
   const newTokens = await getNewAccessTokens(code);
   if (!newTokens) {
     return getResponseError("Could not get new tokens from YNAB API");
@@ -357,7 +368,7 @@ export const authorizeBudget = async (
     return getResponseError("Could not updated new tokens in database!");
   }
 
-  await switchBudget(userID, FAKE_BUDGET_ID);
+  await switchBudget({ userID, newBudgetID: FAKE_BUDGET_ID });
 
   const redirectURL = process.env.CLIENT_BASE_URL as string;
   return getResponse(
@@ -366,13 +377,19 @@ export const authorizeBudget = async (
   );
 };
 
-export const updateBudgetCategoryAmount = async (
-  userID: string,
-  budgetID: string,
-  categoryID: string,
-  month: string,
-  newBudgetedAmount: number
-): Promise<EvercentResponse<{ categoryMsg: string } | null>> => {
+export const updateBudgetCategoryAmount = async ({
+  userID,
+  budgetID,
+  categoryID,
+  month,
+  newBudgetedAmount,
+}: {
+  userID: string;
+  budgetID: string;
+  categoryID: string;
+  month: string;
+  newBudgetedAmount: number;
+}): Promise<EvercentResponse<{ categoryMsg: string } | null>> => {
   const updatedCategory = await ynab(
     userID,
     budgetID,
