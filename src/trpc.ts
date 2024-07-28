@@ -18,7 +18,6 @@ import {
   runAutomation,
   saveAutoRunDetails,
 } from "./autoRun";
-import { RouterRecord } from "@trpc/server/dist/unstable-core-do-not-import";
 
 const sendErrorEmail = async (
   mutate: boolean,
@@ -76,7 +75,7 @@ type Context = Awaited<ReturnType<typeof createContext>>;
 export const ctx = initTRPC.context<Context>().create();
 type TContext = typeof ctx;
 
-export const createRouter = (ctx: TContext, procs: RouterRecord) => {
+export const createRouter = (ctx: TContext, procs: any) => {
   return ctx.router(procs);
 };
 
