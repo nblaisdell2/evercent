@@ -1,4 +1,4 @@
-import { initTRPC, ProcedureRouterRecord } from "@trpc/server";
+import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { logError } from "./utils/log";
@@ -18,6 +18,7 @@ import {
   runAutomation,
   saveAutoRunDetails,
 } from "./autoRun";
+import { RouterRecord } from "@trpc/server/dist/unstable-core-do-not-import";
 
 const sendErrorEmail = async (
   mutate: boolean,
@@ -75,7 +76,7 @@ type Context = Awaited<ReturnType<typeof createContext>>;
 export const ctx = initTRPC.context<Context>().create();
 type TContext = typeof ctx;
 
-export const createRouter = (ctx: TContext, procs: ProcedureRouterRecord) => {
+export const createRouter = (ctx: TContext, procs: RouterRecord) => {
   return ctx.router(procs);
 };
 

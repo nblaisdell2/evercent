@@ -1,6 +1,6 @@
 {
   "name": "evercent",
-  "version": "1.0.33",
+  "version": "1.0.34",
   "description": "Library for the Evercent application",
   "homepage": "http://google.com",
   "repository": {
@@ -24,7 +24,7 @@
   "dependencies": {
     "@react-email/components": "0.0.11",
     "@react-email/render": "0.0.9",
-    "@trpc/server": "^10.45.2",
+    "@trpc/server": "^11.0.0-rc.467",
     "@types/axios": "^0.14.0",
     "@types/express": "^4.17.17",
     "@types/http-errors": "^2.0.1",
