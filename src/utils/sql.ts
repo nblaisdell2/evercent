@@ -24,10 +24,10 @@ const onBeforeConnect = (conn: Connection) => {
 const getConfig = (): config => {
   if (!CONFIG.server) {
     CONFIG = {
-      user: process.env.DB_USER,
-      password: process.env.DB_PWD,
-      database: process.env.DB_NAME,
-      server: process.env.DB_HOST as string,
+      user: process.env.SERVER_DB_USER,
+      password: process.env.SERVER_DB_PWD,
+      database: process.env.SERVER_DB_NAME,
+      server: process.env.SERVER_DB_HOST as string,
       // port: 1433, // default to 1433
       pool: {
         max: 10,

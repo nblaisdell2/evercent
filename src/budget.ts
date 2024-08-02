@@ -370,7 +370,7 @@ export const authorizeBudget = async ({
 
   await switchBudget({ userID, newBudgetID: FAKE_BUDGET_ID });
 
-  const redirectURL = process.env.CLIENT_BASE_URL as string;
+  const redirectURL = process.env.SERVER_CLIENT_BASE_URL as string;
   return getResponse(
     { redirectURL },
     "Please send the user to the redirect URL provided"

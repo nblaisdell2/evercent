@@ -69,6 +69,29 @@ const t = initTRPC.create();
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
+export const getProc = (
+  fn: (...args: any) => Promise<EvercentResponse<any>>,
+  mutate: boolean
+) => {
+  if (mutate) {
+    return publicProcedure
+      .input(z.custom<Parameters<typeof fn>[0]>())
+      .mutation(async (opts) => {
+        const response = await fn(opts.input);
+        if (response.err) sendErrorEmail(mutate, response, opts);
+        return response;
+      });
+  } else {
+    return publicProcedure
+      .input(z.custom<Parameters<typeof fn>[0]>())
+      .query(async (opts) => {
+        const response = await fn(opts.input);
+        if (response.err) sendErrorEmail(mutate, response, opts);
+        return response;
+      });
+  }
+};
+
 export const appRouter = router({
   getAPIStatus: publicProcedure.query(async (opts) => {
     const response = await checkAPIStatus();

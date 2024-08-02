@@ -54,11 +54,11 @@ export type YNABBudgetMonth = {
   to_be_budgeted: number;
 };
 
-const CLIENT_ID = process.env.YNAB_CLIENT_ID;
-const CLIENT_SECRET = process.env.YNAB_CLIENT_SECRET;
+const CLIENT_ID = process.env.SERVER_YNAB_CLIENT_ID;
+const CLIENT_SECRET = process.env.SERVER_YNAB_CLIENT_SECRET;
 const REDIRECT_URI =
-  (process.env.API_BASE_URL as string) +
-  (process.env.YNAB_REDIRECT_URI as string);
+  (process.env.SERVER_API_BASE_URL as string) +
+  (process.env.SERVER_YNAB_REDIRECT_URI as string);
 
 const APP_BASE_URL = "https://app.ynab.com";
 const OAUTH_URL = APP_BASE_URL + "/oauth";
