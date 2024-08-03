@@ -23,7 +23,7 @@ export async function sendEmail({
     port: 465,
     //   secure: true,
     auth: {
-      // TODO: replace `user` and `pass` values from <https://forwardemail.net>
+      // replace `user` and `pass` values from <https://forwardemail.net>
       user: process.env.SERVER_EMAIL_SENDER,
       pass: process.env.SERVER_EMAIL_PWD,
     },
@@ -66,7 +66,7 @@ export async function sendEmailMessage({
     port: 465,
     //   secure: true,
     auth: {
-      // TODO: replace `user` and `pass` values from <https://forwardemail.net>
+      // replace `user` and `pass` values from <https://forwardemail.net>
       user: process.env.SERVER_EMAIL_SENDER,
       pass: process.env.SERVER_EMAIL_PWD,
     },

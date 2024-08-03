@@ -59,6 +59,11 @@ export type AutoRunCategoryMonth = {
   newAmountBudgeted?: number;
 };
 
+type ToggledCategory = {
+  categoryGUID: string;
+  postingMonth: string;
+};
+
 type AutoRunDB = {
   RunID: string;
   RunTime: string;
@@ -657,6 +662,33 @@ export const getAutoRunCategories = (
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 
+export const getExcludedCategoryMonths = (
+  autoRun: AutoRun
+): ToggledCategory[] => {
+  let toggledCategories: ToggledCategory[] = [];
+
+  const categories = getAutoRunCategories([autoRun]);
+  for (let i = 0; i < categories.length; i++) {
+    const months = categories[i].postingMonths;
+
+    for (let j = 0; j < months.length; j++) {
+      const month = months[j];
+
+      if (!month.included) {
+        toggledCategories.push({
+          categoryGUID: categories[i].categoryGUID,
+          postingMonth: month.postingMonth,
+        });
+      }
+    }
+  }
+
+  return toggledCategories;
+};
+
+///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+
 export const getAutoRunData = async ({
   userID,
   budgetID,
@@ -738,23 +770,22 @@ export const getAutoRunData = async ({
 export const saveAutoRunDetails = async ({
   userID,
   budgetID,
-  runTime,
-  toggledCategories,
+  autoRun,
 }: {
   userID: string;
   budgetID: string;
-  runTime: string;
-  toggledCategories: any;
+  autoRun: AutoRun;
 }): Promise<EvercentResponse<{ successful: boolean } | null>> => {
-  // TODO: Figure out format for "ToggledCategories", so we can pass it the correct
-  //       object, and format it in here
+  const runTime = autoRun.runTime;
+  const toggledCategories = getExcludedCategoryMonths(autoRun);
+
   const queryRes = await execute("spEV_UpdateAutoRunDetails", [
     { name: "UserID", value: userID },
     { name: "BudgetID", value: budgetID },
     { name: "NewRunTime", value: runTime },
     {
       name: "ToggledCategories",
-      value: toggledCategories,
+      value: JSON.stringify({ toggledCategories }),
     },
   ]);
   if (sqlErr(queryRes)) {

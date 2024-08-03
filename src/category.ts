@@ -21,8 +21,6 @@ import {
 } from "./budget";
 import { EvercentResponse, getResponse, getResponseError } from "./evercent";
 
-// TODO: Can I extract this into its own generic type
-//       when querying the database?
 type CategoryDataDB = {
   BudgetID: string;
   CategoryGUID: string;
@@ -559,6 +557,28 @@ export const dueDateAndAmountSet = (
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 
+export const getAllCategories = (
+  categoryGroups: CategoryGroup[],
+  includeOnChartAdded: boolean
+) => {
+  return categoryGroups.reduce((prev, curr) => {
+    if (!includeOnChartAdded) {
+      return [
+        ...prev,
+        ...curr.categories.filter(
+          (c) =>
+            c.regularExpenseDetails == null ||
+            c.regularExpenseDetails.includeOnChart
+        ),
+      ];
+    }
+    return [...prev, ...curr.categories];
+  }, [] as Category[]);
+};
+
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+
 export const getCategoryData = async ({
   userID,
   budget,
@@ -622,23 +642,86 @@ export const getCategoryData = async ({
   );
 };
 
+const formatCategories = (
+  categoryGroups: CategoryGroup[],
+  excludedCategories: ExcludedCategory[]
+) => {
+  let formattedResults = {
+    details: [] as any,
+    expense: [] as any,
+    upcoming: [] as any,
+    excluded: [] as any,
+  };
+
+  const allCategories = getAllCategories(categoryGroups, true);
+  for (let i = 0; i < allCategories.length; i++) {
+    const currCat = allCategories[i];
+    if (currCat) {
+      const isRegularExpense = currCat.regularExpenseDetails != null;
+      const isUpcomingExpense = currCat.upcomingDetails != null;
+
+      formattedResults.details.push({
+        guid: currCat.guid,
+        categoryGroupID: currCat.categoryGroupID,
+        categoryID: currCat.categoryID,
+        amount: currCat.amount,
+        extraAmount: currCat.extraAmount,
+        isRegularExpense: isRegularExpense,
+        isUpcomingExpense: isUpcomingExpense,
+      });
+
+      if (isRegularExpense) {
+        formattedResults.expense.push({
+          guid: currCat.guid,
+          isMonthly: currCat.regularExpenseDetails?.isMonthly,
+          nextDueDate: currCat.regularExpenseDetails?.nextDueDate,
+          expenseMonthsDivisor: currCat.regularExpenseDetails?.monthsDivisor,
+          repeatFreqNum: currCat.regularExpenseDetails?.repeatFreqNum,
+          repeatFreqType: currCat.regularExpenseDetails?.repeatFreqType,
+          includeOnChart: currCat.regularExpenseDetails?.includeOnChart,
+          multipleTransactions:
+            currCat.regularExpenseDetails?.multipleTransactions,
+        });
+      }
+
+      if (isUpcomingExpense) {
+        formattedResults.upcoming.push({
+          guid: currCat.guid,
+          totalExpenseAmount: currCat.upcomingDetails?.expenseAmount,
+        });
+      }
+    }
+  }
+
+  for (let i = 0; i < excludedCategories.length; i++) {
+    formattedResults.excluded.push({
+      guid: excludedCategories[i]?.guid,
+    });
+  }
+
+  return formattedResults;
+};
+
 export const updateCategoryDetails = async ({
   userID,
   budgetID,
-  categories,
+  newCategories,
+  excludedCategories,
 }: {
   userID: string;
   budgetID: string;
-  categories: BudgetMonthCategory[];
-}): Promise<EvercentResponse<{ categories: BudgetMonthCategory[] } | null>> => {
-  // TODO: Need to figure out how to convert these categories
-  //       to the appropriately-formatted details for the query
-  const Details = categories as any;
+  newCategories: CategoryGroup[];
+  excludedCategories: ExcludedCategory[];
+}): Promise<EvercentResponse<{ newCategories: CategoryGroup[] } | null>> => {
+  const formattedCategories = formatCategories(
+    newCategories,
+    excludedCategories
+  );
 
   const queryRes = await execute("spEV_UpdateCategoryDetails", [
     { name: "UserID", value: userID },
     { name: "BudgetID", value: budgetID },
-    { name: "Details", value: Details },
+    { name: "Details", value: JSON.stringify(formattedCategories) },
   ]);
   if (sqlErr(queryRes)) {
     return getResponseError(
@@ -646,5 +729,8 @@ export const updateCategoryDetails = async ({
     );
   }
 
-  return getResponse({ categories }, "Got category list for user: " + userID);
+  return getResponse(
+    { newCategories },
+    "Got category list for user: " + userID
+  );
 };
