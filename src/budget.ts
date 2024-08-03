@@ -1,6 +1,7 @@
 import { addMonths, isEqual, parseISO, startOfMonth } from "date-fns";
 import ynab, {
   getNewAccessTokens,
+  GetURL_YNABAuthorizationPage,
   YNABBudget,
   YNABBudgetMonth,
   YNABCategory,
@@ -259,6 +260,18 @@ export const getBudgetCategory = (
 
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
+
+export const connectToYNAB = async ({
+  userID,
+}: {
+  userID: string;
+}): Promise<EvercentResponse<string>> => {
+  const url = GetURL_YNABAuthorizationPage(userID);
+  if (!url)
+    return getResponseError(`Could not connect to budget for user: ${userID}`);
+
+  return getResponse(url, `Got YNAB url for user: ${userID}`);
+};
 
 export const getBudget = async ({
   userID,
