@@ -92,7 +92,13 @@ export const updateUserDetails = async function ({
   monthlyIncome: number;
   payFrequency: PayFrequency;
   nextPaydate: string;
-}): Promise<EvercentResponse<UserData | null>> {
+}): Promise<
+  EvercentResponse<{
+    monthlyIncome: number;
+    payFrequency: PayFrequency;
+    nextPaydate: string;
+  } | null>
+> {
   const queryRes = await execute("spEV_UpdateUserDetails", [
     { name: "UserID", value: userID },
     { name: "BudgetID", value: budgetID },
@@ -102,7 +108,7 @@ export const updateUserDetails = async function ({
   ]);
   if (sqlErr(queryRes)) return getResponseError(queryRes.error);
   return getResponse(
-    queryRes.resultData,
+    { monthlyIncome, payFrequency, nextPaydate },
     "Updated User Details for user: " + userID
   );
 };
