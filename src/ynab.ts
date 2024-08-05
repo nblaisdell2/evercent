@@ -1,14 +1,11 @@
 import { AxiosResponseHeaders } from "axios";
-import { log, logError } from "./utils/log";
-import { execute, query } from "./utils/sql";
+import { logError } from "./utils/log";
 
 import { config } from "dotenv";
-import { FAKE_BUDGET_ID } from "./budget";
 import { getAPIResponse } from "./utils/api";
-import { roundNumber } from "./utils/util";
 config();
 
-type TokenDetails = {
+export type TokenDetails = {
   accessToken: string;
   refreshToken: string;
   expirationDate: string;
@@ -62,92 +59,18 @@ const REDIRECT_URI =
 
 const APP_BASE_URL = "https://app.ynab.com";
 const OAUTH_URL = APP_BASE_URL + "/oauth";
-const API_URL = "https://api.ynab.com/v1";
+export const YNAB_API_URL = "https://api.ynab.com/v1";
 
 const RATE_LIMIT_THRESHOLD = 180;
 
-const IGNORED_CATEGORY_GROUPS = [
-  "Internal Master Category", // Used internally by YNAB, not necessary for me
-  "Credit Card Payments", // Special category within YNAB which works with Credit Cards
-  "Hidden Categories", // Any categories hidden by the user in their budget, don't include them
-];
-
-const isOverRateLimitThreshold = (headers: AxiosResponseHeaders): boolean => {
+export const isOverRateLimitThreshold = (
+  headers: AxiosResponseHeaders
+): boolean => {
   let rateLim = headers["x-rate-limit"];
   // log("Rate Limit:", rateLim);
   let rateLimLeft = parseInt(rateLim.substring(0, rateLim.indexOf("/")));
   // log("Rate Limit Left", rateLimLeft);
   return rateLimLeft >= RATE_LIMIT_THRESHOLD;
-};
-
-const getYNABAllBudgetsData = async (
-  userID: string,
-  budgetID: string,
-  accessToken: string,
-  refreshToken: string
-): Promise<YNABBudget[] | null> => {
-  if (budgetID == FAKE_BUDGET_ID) {
-    budgetID = "default";
-  }
-
-  const { data, headers, error } = await getAPIResponse({
-    method: "GET",
-    url: API_URL + "/budgets",
-    headers: {
-      Authorization: "Bearer " + accessToken,
-    },
-  });
-
-  if (error) return ynabErr(error);
-
-  if (isOverRateLimitThreshold(headers)) {
-    getRefreshedAccessTokens(userID, refreshToken);
-  }
-
-  return data.data.budgets as YNABBudget[];
-};
-
-const getYNABBudgetData = async (
-  userID: string,
-  budgetID: string,
-  accessToken: string,
-  refreshToken: string
-): Promise<YNABBudget | null> => {
-  if (budgetID == FAKE_BUDGET_ID) {
-    budgetID = "default";
-  }
-
-  const { data, headers, error } = await getAPIResponse({
-    method: "GET",
-    url: API_URL + "/budgets/" + budgetID.toLowerCase(),
-    headers: {
-      Authorization: "Bearer " + accessToken,
-    },
-  });
-
-  if (error) return ynabErr(error);
-
-  if (isOverRateLimitThreshold(headers)) {
-    getRefreshedAccessTokens(userID, refreshToken);
-  }
-
-  let budgetData = data.data.budget as YNABBudget;
-
-  // Filter unwanted category groups BEFORE sending back to the user, so I don't
-  // have to remember to do it everywhere else
-  // Keeps any hidden/deleted groups, however, in case we need the details for any
-  // past runs
-  budgetData.category_groups = budgetData.category_groups.filter(
-    (grp) => !IGNORED_CATEGORY_GROUPS.includes(grp.name)
-  );
-
-  // Match on our groups above, but keep any hidden/deleted categories, in case we need
-  // the details for any past runs
-  budgetData.categories = budgetData.categories.filter((c) =>
-    budgetData.category_groups.find((grp) => grp.id == c.category_group_id)
-  );
-
-  return budgetData;
 };
 
 export const getNewAccessTokens = async (
@@ -173,63 +96,7 @@ export const getNewAccessTokens = async (
   return await getYNABTokenData(data as YNABTokenData);
 };
 
-const getRefreshedAccessTokens = async (
-  userID: string,
-  refreshToken: string
-): Promise<TokenDetails | null> => {
-  log("Attempting to refresh access tokens");
-
-  const { data, error } = await getAPIResponse({
-    method: "POST",
-    url: OAUTH_URL + "/token",
-    params: {
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      grant_type: "refresh_token",
-      refresh_token: refreshToken,
-    },
-  });
-
-  if (error) {
-    logError("YNAB Error", error);
-    return null;
-  }
-
-  const newTokenDetails = await getYNABTokenData(data as YNABTokenData);
-
-  // Don't await, since we can update asynchronously without needing a result.
-  execute("spEV_YNAB_SaveTokenDetails", [
-    { name: "UserID", value: userID },
-    { name: "AccessToken", value: newTokenDetails.accessToken },
-    { name: "RefreshToken", value: newTokenDetails.refreshToken },
-    { name: "ExpirationDate", value: newTokenDetails.expirationDate },
-  ]);
-
-  return newTokenDetails;
-};
-
-const validateTokens = async (userID: string, tokenDetails: any) => {
-  let { RefreshToken, ExpirationDate } = tokenDetails;
-
-  // If the expiration isn't past due, return the existing token details
-  // and don't attempt to refresh
-  if (new Date() < ExpirationDate) return tokenDetails;
-
-  // Otherwise, if the expiration date on our tokens are past due,
-  // we'll request a new access/refresh token combination
-  const newTokenDetails = await getRefreshedAccessTokens(userID, RefreshToken);
-  if (!newTokenDetails) return null;
-
-  // Return the newly-refreshed tokens to use for
-  // any subsequent requests
-  return {
-    AccessToken: newTokenDetails.accessToken,
-    RefreshToken: newTokenDetails.refreshToken,
-    ExpirationDate: newTokenDetails.expirationDate,
-  };
-};
-
-const getYNABTokenData = async (data: YNABTokenData) => {
+export const getYNABTokenData = async (data: YNABTokenData) => {
   let newExpirDate = new Date();
   newExpirDate.setSeconds(newExpirDate.getSeconds() + data.expires_in);
 
@@ -259,141 +126,7 @@ export function GetURL_YNABBudget(budgetID: string) {
   return APP_BASE_URL + "/" + budgetID.toLowerCase() + "/budget";
 }
 
-const ynabErr = (errMsg: string) => {
+export const ynabErr = (errMsg: string) => {
   logError("YNAB Error: " + errMsg);
   return null;
 };
-
-// ============================================
-// ============================================
-// ============================================
-
-const updateYNABCategoryAmount = async (
-  userID: string,
-  budgetID: string,
-  accessToken: string,
-  refreshToken: string,
-  categoryID: string | undefined,
-  month: string | undefined,
-  newBudgetedAmount: number | undefined
-): Promise<YNABCategory | null> => {
-  if (
-    categoryID == undefined ||
-    month == undefined ||
-    newBudgetedAmount == undefined
-  ) {
-    return null;
-  }
-
-  const { data, headers, error } = await getAPIResponse({
-    method: "PATCH",
-    url:
-      API_URL +
-      "/budgets/" +
-      budgetID.toLowerCase() +
-      "/months/" +
-      month +
-      "/categories/" +
-      categoryID.toLowerCase(),
-    headers: {
-      Authorization: "Bearer " + accessToken,
-    },
-    params: {
-      category: {
-        budgeted: Math.floor(roundNumber(newBudgetedAmount, 2) * 1000),
-      },
-    },
-  });
-
-  if (error) return ynabErr(error);
-
-  if (isOverRateLimitThreshold(headers)) {
-    getRefreshedAccessTokens(userID, refreshToken);
-  }
-
-  return data.data.category as YNABCategory;
-};
-
-const getBudgetsList = async (
-  userID: string,
-  budgetID: string,
-  accessToken: string,
-  refreshToken: string
-): Promise<Pick<YNABBudget, "id" | "name">[] | null> => {
-  const budgets = await getYNABAllBudgetsData(
-    userID,
-    budgetID,
-    accessToken,
-    refreshToken
-  );
-
-  if (!budgets) return ynabErr("Could not get budgets list");
-
-  return budgets.map((b) => {
-    return { id: b.id, name: b.name };
-  });
-};
-
-const getBudget = async (
-  userID: string,
-  budgetID: string,
-  accessToken: string,
-  refreshToken: string
-): Promise<YNABBudget | null> => {
-  return await getYNABBudgetData(userID, budgetID, accessToken, refreshToken);
-};
-
-const ynab = async <T>(
-  userID: string,
-  budgetID: string,
-  ynabFn: (
-    userID: string,
-    budgetID: string,
-    accessToken: string,
-    refreshToken: string,
-    categoryID?: string,
-    month?: string,
-    newBudgetedAmount?: number
-  ) => Promise<T | null>,
-  categoryID?: string,
-  month?: string,
-  newBudgetedAmount?: number
-): Promise<T | null> => {
-  // First, query the DB for the user's access/refresh tokens, to ensure
-  // that they are still valid before running any queries against the
-  // YNAB API
-  const queryRes = await query("spEV_YNAB_GetTokenDetails", [
-    { name: "UserID", value: userID },
-  ]);
-
-  if (queryRes.error || !queryRes.resultData) {
-    return ynabErr(
-      queryRes.error || "Could not get token details from database"
-    );
-  }
-
-  // Next, see if the tokens are still valid before continuing
-  // If the expiration date is past due, refresh the tokens and
-  // return the new tokens to use for our request
-  const validatedTokens = await validateTokens(userID, queryRes.resultData);
-  if (!validatedTokens) return ynabErr("Could not validate YNAB tokens");
-
-  // Run our YNAB request, and return the data
-  return await ynabFn(
-    userID,
-    budgetID,
-    validatedTokens.AccessToken,
-    validatedTokens.RefreshToken,
-    categoryID,
-    month,
-    newBudgetedAmount
-  );
-};
-
-export const YnabReq = {
-  getBudget,
-  getBudgetsList,
-  updateYNABCategoryAmount,
-};
-
-export default ynab;

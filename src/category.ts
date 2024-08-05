@@ -6,7 +6,7 @@ import {
   startOfMonth,
 } from "date-fns";
 import { log } from "./utils/log";
-import { execute, query, sqlErr } from "./utils/sql";
+// import { execute, query, sqlErr } from "./utils/sql";
 import { find, roundNumber, sum } from "./utils/util";
 import { PayFrequency, getAmountByPayFrequency } from "./user";
 import {
@@ -102,7 +102,7 @@ export type UpcomingExpenses = {
 //   paychecksAway: number;
 // };
 
-const createCategoryGroupList = (
+export const createCategoryGroupList = (
   categoryDataDB: CategoryDataDB[],
   budget: Budget,
   payFreq: PayFrequency,
@@ -226,7 +226,7 @@ const getUpcomingExpenses = (
   };
 };
 
-const getExcludedCategories = (dbData: any): ExcludedCategory[] => {
+export const getExcludedCategories = (dbData: any): ExcludedCategory[] => {
   return dbData.map((d: any) => {
     return {
       guid: d.CategoryGUID,
@@ -578,159 +578,3 @@ export const getAllCategories = (
 
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
-
-export const getCategoryData = async ({
-  userID,
-  budget,
-  payFrequency,
-  nextPaydate,
-}: {
-  userID: string;
-  budget: Budget;
-  payFrequency: PayFrequency;
-  nextPaydate: string;
-}): Promise<
-  EvercentResponse<{
-    categoryGroups: CategoryGroup[];
-    excludedCategories: ExcludedCategory[];
-  } | null>
-> => {
-  const budgetCategories = getBudgetCategories(budget.months[0]).map((bc) => {
-    return {
-      categoryGroupID: bc.categoryGroupID,
-      categoryGroupName: bc.categoryGroupName,
-      categoryID: bc.categoryID,
-      name: bc.name,
-      budgeted: bc.budgeted,
-      activity: bc.activity,
-      available: bc.available,
-    };
-  });
-  //   log(JSON.stringify({ details: budgetCategories }));
-
-  // ========================
-  // 1. Refresh and return categories from database
-  // ========================
-  const queryRes = await query("spEV_GetCategoryData", [
-    { name: "UserID", value: userID },
-    { name: "BudgetID", value: budget.id },
-    { name: "Details", value: JSON.stringify({ details: budgetCategories }) },
-  ]);
-  if (sqlErr(queryRes)) {
-    return getResponseError(
-      "Unable to retrieve category details from database for user: " + userID
-    );
-  }
-
-  // ========================
-  // 2. Assemble category list(s)
-  // ========================
-  const categoryDetails = createCategoryGroupList(
-    queryRes.resultData[0],
-    budget,
-    payFrequency,
-    nextPaydate
-  );
-  const excludedCategories = getExcludedCategories(queryRes.resultData[1]);
-
-  return getResponse(
-    {
-      categoryGroups: categoryDetails,
-      excludedCategories,
-    },
-    "Retrieved category details for user: " + userID
-  );
-};
-
-const formatCategories = (
-  categoryGroups: CategoryGroup[],
-  excludedCategories: ExcludedCategory[]
-) => {
-  let formattedResults = {
-    details: [] as any,
-    expense: [] as any,
-    upcoming: [] as any,
-    excluded: [] as any,
-  };
-
-  const allCategories = getAllCategories(categoryGroups, true);
-  for (let i = 0; i < allCategories.length; i++) {
-    const currCat = allCategories[i];
-    if (currCat) {
-      const isRegularExpense = currCat.regularExpenseDetails != null;
-      const isUpcomingExpense = currCat.upcomingDetails != null;
-
-      formattedResults.details.push({
-        guid: currCat.guid,
-        categoryGroupID: currCat.categoryGroupID,
-        categoryID: currCat.categoryID,
-        amount: currCat.amount,
-        extraAmount: currCat.extraAmount,
-        isRegularExpense: isRegularExpense,
-        isUpcomingExpense: isUpcomingExpense,
-      });
-
-      if (isRegularExpense) {
-        formattedResults.expense.push({
-          guid: currCat.guid,
-          isMonthly: currCat.regularExpenseDetails?.isMonthly,
-          nextDueDate: currCat.regularExpenseDetails?.nextDueDate,
-          expenseMonthsDivisor: currCat.regularExpenseDetails?.monthsDivisor,
-          repeatFreqNum: currCat.regularExpenseDetails?.repeatFreqNum,
-          repeatFreqType: currCat.regularExpenseDetails?.repeatFreqType,
-          includeOnChart: currCat.regularExpenseDetails?.includeOnChart,
-          multipleTransactions:
-            currCat.regularExpenseDetails?.multipleTransactions,
-        });
-      }
-
-      if (isUpcomingExpense) {
-        formattedResults.upcoming.push({
-          guid: currCat.guid,
-          totalExpenseAmount: currCat.upcomingDetails?.expenseAmount,
-        });
-      }
-    }
-  }
-
-  for (let i = 0; i < excludedCategories.length; i++) {
-    formattedResults.excluded.push({
-      guid: excludedCategories[i]?.guid,
-    });
-  }
-
-  return formattedResults;
-};
-
-export const updateCategoryDetails = async ({
-  userID,
-  budgetID,
-  newCategories,
-  excludedCategories,
-}: {
-  userID: string;
-  budgetID: string;
-  newCategories: CategoryGroup[];
-  excludedCategories: ExcludedCategory[];
-}): Promise<EvercentResponse<{ newCategories: CategoryGroup[] } | null>> => {
-  const formattedCategories = formatCategories(
-    newCategories,
-    excludedCategories
-  );
-
-  const queryRes = await execute("spEV_UpdateCategoryDetails", [
-    { name: "UserID", value: userID },
-    { name: "BudgetID", value: budgetID },
-    { name: "Details", value: JSON.stringify(formattedCategories) },
-  ]);
-  if (sqlErr(queryRes)) {
-    return getResponseError(
-      "Unable to update category details for user: " + userID
-    );
-  }
-
-  return getResponse(
-    { newCategories },
-    "Got category list for user: " + userID
-  );
-};
