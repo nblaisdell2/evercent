@@ -30,6 +30,9 @@ import {
   isOverRateLimitThreshold,
   TokenDetails,
   YNAB_API_URL,
+  YNAB_CLIENT_ID,
+  YNAB_CLIENT_SECRET,
+  YNAB_OAUTH_URL,
   YNABBudget,
   YNABCategory,
   ynabErr,
@@ -337,10 +340,10 @@ export const getRefreshedAccessTokens = async (
 
   const { data, error } = await getAPIResponse({
     method: "POST",
-    url: process.env.OAUTH_URL + "/token",
+    url: YNAB_OAUTH_URL + "/token",
     params: {
-      client_id: process.env.CLIENT_ID,
-      client_secret: process.env.CLIENT_SECRET,
+      client_id: YNAB_CLIENT_ID,
+      client_secret: YNAB_CLIENT_SECRET,
       grant_type: "refresh_token",
       refresh_token: refreshToken,
     },
