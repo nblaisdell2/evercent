@@ -58,6 +58,7 @@ import {
   getExcludedCategoryMonths,
   LockedResult,
 } from "./autoRun";
+import { addHours, parseISO } from "date-fns";
 
 const DEBUG = !!process.env.DEBUG;
 
@@ -521,18 +522,16 @@ export const switchBudget = async ({
   );
 };
 
-export const authorizeBudget = async ({
-  userID,
-  code,
-}: {
-  userID: string;
-  code: string;
-}): Promise<EvercentResponse<{ redirectURL: string } | null>> => {
+export const authorizeBudget = async (
+  state: string,
+  code: string
+): Promise<EvercentResponse<{ redirectURL: string } | null>> => {
   const newTokens = await getNewAccessTokens(code);
   if (!newTokens) {
     return getResponseError("Could not get new tokens from YNAB API");
   }
 
+  const userID = state;
   // Save token details in DB for this user
   let sqlRes = await execute("spEV_YNAB_SaveTokenDetails", [
     { name: "UserID", value: userID },
@@ -720,12 +719,20 @@ export const updateCategoryDetails = async ({
   budgetID,
   newCategories,
   excludedCategories,
+  autoRuns,
 }: {
   userID: string;
   budgetID: string;
   newCategories: CategoryGroup[];
   excludedCategories: ExcludedCategory[];
-}): Promise<EvercentResponse<{ newCategories: CategoryGroup[] } | null>> => {
+  autoRuns: AutoRun[];
+}): Promise<
+  EvercentResponse<{
+    newCategories: CategoryGroup[];
+    excludedCategories: ExcludedCategory[];
+    newAutoRuns: AutoRun[];
+  } | null>
+> => {
   const formattedCategories = formatCategories(
     newCategories,
     excludedCategories
@@ -742,8 +749,21 @@ export const updateCategoryDetails = async ({
     );
   }
 
+  const newAutoRuns =
+    autoRuns.length == 0
+      ? []
+      : autoRuns.map((ar) => {
+          return {
+            ...ar,
+            runTime: addHours(
+              parseISO(ar.runTime),
+              parseISO(autoRuns[0].runTime).getHours()
+            ).toISOString(),
+          };
+        });
+
   return getResponse(
-    { newCategories },
+    { newCategories, excludedCategories, newAutoRuns },
     "Got category list for user: " + userID
   );
 };

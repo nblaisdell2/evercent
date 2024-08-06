@@ -1,5 +1,5 @@
 import { AxiosResponseHeaders } from "axios";
-import { logError } from "./utils/log";
+import { log, logError } from "./utils/log";
 
 import { config } from "dotenv";
 import { getAPIResponse } from "./utils/api";
@@ -76,6 +76,13 @@ export const isOverRateLimitThreshold = (
 export const getNewAccessTokens = async (
   authCode: string
 ): Promise<TokenDetails | null> => {
+  log("Token params:", {
+    client_id: YNAB_CLIENT_ID,
+    client_secret: YNAB_CLIENT_SECRET,
+    redirect_uri: YNAB_REDIRECT_URI,
+    grant_type: "authorization_code",
+    code: authCode,
+  });
   // An auth code was provided, so this request is attempting to
   // connect to a user's budget for the first time, after they visited
   // the YNAB auth page where they select their default budget
