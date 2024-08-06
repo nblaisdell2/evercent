@@ -1289,7 +1289,21 @@ export const getAllDataForUser = async (
   payFrequency: PayFrequency,
   nextPaydate: string
 ): Promise<EvercentResponse<Omit<EvercentData, "userData">>> => {
-  // - Get the current budget/autoRun details for this UserID/BudgetID
+  if (budgetID == FAKE_BUDGET_ID) {
+    return {
+      err: null,
+      message: "Not connected to budget yet. Returning just UserData",
+      data: {
+        budget: null,
+        categoryGroups: [],
+        excludedCategories: [],
+        autoRuns: [],
+        pastRuns: [],
+      },
+    };
+  }
+
+  // Get the current budget/autoRun details for this UserID/BudgetID
   const budgetRes = await getBudget({ userID, budgetID });
   if (budgetRes.err || !budgetRes.data) {
     return getResponseError(budgetRes.err);
