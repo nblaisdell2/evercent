@@ -99,18 +99,20 @@ const createBudgetMonths = (
   });
 
   // console.log("new months 0 = " + JSON.stringify(newMonths));
-  if (newMonths[0] && newMonths[0].tbb) newMonths[0].tbb = tbb;
+  if (newMonths[0] && newMonths[0].tbb) {
+    newMonths[0].tbb = tbb;
 
-  // Append 10-years-worth more months at the end of the list, in case I need them
-  // for calculating "posting months" into the future
-  let lastMonth = newMonths[newMonths.length - 1];
-  let currMonth = parseISO(lastMonth.month);
-  for (let i = 0; i < 120; i++) {
-    currMonth = addMonths(currMonth, 1);
-    newMonths.push({
-      ...lastMonth,
-      month: currMonth.toISOString().substring(0, 10),
-    });
+    // Append 10-years-worth more months at the end of the list, in case I need them
+    // for calculating "posting months" into the future
+    let lastMonth = newMonths[newMonths.length - 1];
+    let currMonth = parseISO(lastMonth.month);
+    for (let i = 0; i < 120; i++) {
+      currMonth = addMonths(currMonth, 1);
+      newMonths.push({
+        ...lastMonth,
+        month: currMonth.toISOString().substring(0, 10),
+      });
+    }
   }
 
   return newMonths;
