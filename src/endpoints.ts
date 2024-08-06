@@ -59,6 +59,12 @@ import {
   LockedResult,
 } from "./autoRun";
 
+const DEBUG = !!process.env.DEBUG;
+
+const debug = (...args: any[]) => {
+  if (DEBUG) log(args);
+};
+
 /////////////////////////////////////
 /////////////// USER ////////////////
 /////////////////////////////////////
@@ -1249,6 +1255,8 @@ export const getAllEvercentData = async ({
   }
 
   const userData = res.data;
+  debug("UserData returned: " + userData);
+
   const dataRes = await getAllDataForUser(
     userData.userID,
     userData.budgetID,
@@ -1287,9 +1295,9 @@ export const getAllDataForUser = async (
     return getResponseError(budgetRes.err);
   }
 
-  // log("budget", budget);
-
   const budget = budgetRes.data;
+  debug("budget", budget);
+
   const categoryDataRes = await getCategoryData({
     userID,
     budget,
@@ -1300,8 +1308,9 @@ export const getAllDataForUser = async (
     return getResponseError(categoryDataRes.err);
   }
 
-  // log("categories", categoryData.categoryGroups);
   const categoryData = categoryDataRes.data;
+  debug("categories", categoryData.categoryGroups);
+
   const autoRunDataRes = await getAutoRunData({
     userID,
     budgetID,

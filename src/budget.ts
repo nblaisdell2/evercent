@@ -1,16 +1,13 @@
 import { addMonths, isEqual, parseISO, startOfMonth } from "date-fns";
 import {
-  getNewAccessTokens,
-  GetURL_YNABAuthorizationPage,
   YNABBudget,
   YNABBudgetMonth,
   YNABCategory,
   YNABCategoryGroup,
 } from "./ynab";
-import { find, generateUUID, sum } from "./utils/util";
-// import { execute, sqlErr } from "./utils/sql";
-import { EvercentResponse, getResponse, getResponseError } from "./evercent";
-import { ynab, YnabReq } from "./endpoints";
+import { find, sum } from "./utils/util";
+
+const DEBUG = !!process.env.DEBUG;
 
 export const FAKE_BUDGET_ID = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEFFFFFF";
 
