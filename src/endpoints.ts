@@ -62,7 +62,7 @@ import {
 const DEBUG = !!process.env.DEBUG;
 
 const debug = (...args: any[]) => {
-  if (DEBUG) log(args);
+  if (DEBUG) log(...args);
 };
 
 /////////////////////////////////////
@@ -1255,7 +1255,7 @@ export const getAllEvercentData = async ({
   }
 
   const userData = res.data;
-  debug("UserData returned: " + userData);
+  debug("UserData returned: ", userData);
 
   const dataRes = await getAllDataForUser(
     userData.userID,
