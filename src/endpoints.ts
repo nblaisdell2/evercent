@@ -1273,12 +1273,14 @@ export const getAllEvercentData = async ({
     ...data,
   } as EvercentData;
 
-  // Since we included "hidden" & "deleted" items, in order to account for past run
-  // data where the category has since been hidden or deleted in the user's budget, but
-  // we still need the data for displaying the category name and posted amounts, at this point
-  // the code, just before we return it to the Evercent application, we'll adjust each of the
-  // budget months to remove those hidden/deleted categories/groups, as the application expects.
-  allData.budget = removeHiddenCategoriesFromBudget(allData.budget as Budget);
+  if (allData.budget) {
+    // Since we included "hidden" & "deleted" items, in order to account for past run
+    // data where the category has since been hidden or deleted in the user's budget, but
+    // we still need the data for displaying the category name and posted amounts, at this point
+    // the code, just before we return it to the Evercent application, we'll adjust each of the
+    // budget months to remove those hidden/deleted categories/groups, as the application expects.
+    allData.budget = removeHiddenCategoriesFromBudget(allData.budget as Budget);
+  }
 
   return getResponse(allData, "Got ALL Evercent data for user: " + userEmail);
 };
