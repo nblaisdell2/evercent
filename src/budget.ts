@@ -99,7 +99,7 @@ const createBudgetMonths = (
   });
 
   // console.log("new months 0 = " + JSON.stringify(newMonths));
-  newMonths[0].tbb = tbb;
+  if (newMonths[0] && newMonths[0].tbb) newMonths[0].tbb = tbb;
 
   // Append 10-years-worth more months at the end of the list, in case I need them
   // for calculating "posting months" into the future
