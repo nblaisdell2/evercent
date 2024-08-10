@@ -51,14 +51,17 @@ import {
 } from "./utils/util";
 import {
   AutoRun,
+  AutoRunCategoryGroup,
   CapitalizeKeys,
-  generateAutoRunResultsEmail,
   getAutoRunCategories,
   getAutoRunDetails,
   getExcludedCategoryMonths,
   LockedResult,
 } from "./autoRun";
-import { addHours, parseISO } from "date-fns";
+import { addHours, format, parseISO } from "date-fns";
+import { sendEmail } from "./utils/email";
+import React from "react";
+import EvercentAutoRunEmail from "./component/EvercentAutoRunEmail";
 
 const DEBUG = !!process.env.DEBUG;
 
@@ -374,7 +377,7 @@ export const getRefreshedAccessTokens = async (
   return newTokenDetails;
 };
 
-export const ynab = async <T>(
+export async function ynab<T>(
   userID: string,
   budgetID: string,
   ynabFn: (
@@ -389,7 +392,7 @@ export const ynab = async <T>(
   categoryID?: string,
   month?: string,
   newBudgetedAmount?: number
-): Promise<T | null> => {
+): Promise<T | null> {
   // First, query the DB for the user's access/refresh tokens, to ensure
   // that they are still valid before running any queries against the
   // YNAB API
@@ -419,7 +422,7 @@ export const ynab = async <T>(
     month,
     newBudgetedAmount
   );
-};
+}
 
 /////////////////////////////////////
 ////////////// BUDGET ///////////////
@@ -772,6 +775,74 @@ export const updateCategoryDetails = async ({
 ///////////// AUTORUN ///////////////
 /////////////////////////////////////
 
+export const generateAutoRunResultsEmail = async (
+  emailResults: any,
+  userEmail: string,
+  runTime: string,
+  budgetMonth: BudgetMonth
+) => {
+  // Sort the groups by their order in YNAB,
+  let sortedResults = emailResults.sort(
+    (a: any, b: any) =>
+      (budgetMonth as BudgetMonth).groups.findIndex(
+        (cg) => cg.categoryGroupID.toLowerCase() == a.groupID.toLowerCase()
+      ) -
+      (budgetMonth as BudgetMonth).groups.findIndex(
+        (cg) => cg.categoryGroupID.toLowerCase() == b.groupID.toLowerCase()
+      )
+  );
+  // Then sort the categories within each of the groups based on their order in YNAB
+  for (let i = 0; i < sortedResults.length; i++) {
+    let currGroup = find(
+      (budgetMonth as BudgetMonth).groups,
+      (cg) =>
+        cg.categoryGroupID.toLowerCase() ==
+        sortedResults[i].groupID.toLowerCase()
+    );
+    sortedResults[i].categories = sortedResults[i].categories.sort(
+      (a: any, b: any) =>
+        currGroup.categories.findIndex(
+          (c) => c.categoryID.toLowerCase() == a.categoryID.toLowerCase()
+        ) -
+        currGroup.categories.findIndex(
+          (c) => c.categoryID.toLowerCase() == b.categoryID.toLowerCase()
+        )
+    );
+  }
+
+  await sendAutoRunEmail(userEmail, runTime, sortedResults);
+};
+
+export const sendAutoRunEmail = async function (
+  userEmail: string,
+  runTime: string,
+  autoRunGroups: AutoRunCategoryGroup[]
+) {
+  const info = await sendEmail({
+    emailComponent: (
+      <EvercentAutoRunEmail
+        runTime={format(
+          parseISO(new Date(runTime).toISOString()),
+          "MM/dd/yyyy @ h:mma"
+        )}
+        results={autoRunGroups}
+      />
+    ),
+    from: '"Evercent" <nblaisdell2@gmail.com>',
+    to: userEmail,
+    subject: "Budget Automation Results",
+    attachments: [
+      {
+        filename: "evercent_logo.png",
+        path: __dirname + "/../public/evercent_logo.png",
+        cid: "logo",
+      },
+    ],
+  });
+
+  console.log("Message sent: %s", info.messageId);
+};
+
 export const getAutoRunCategoriesToLock = async (results: any) => {
   let lockedResults: LockedResult[] = [];
   for (let i = 0; i < results.length; i++) {
@@ -998,7 +1069,7 @@ export const saveAutoRunDetails = async ({
   userID: string;
   budgetID: string;
   autoRun: AutoRun;
-}): Promise<EvercentResponse<{ successful: boolean } | null>> => {
+}): Promise<EvercentResponse<{ autoRuns: AutoRun[] } | null>> => {
   const runTime = autoRun.runTime;
   const toggledCategories = getExcludedCategoryMonths(autoRun);
 
@@ -1018,7 +1089,7 @@ export const saveAutoRunDetails = async ({
   }
 
   return getResponse(
-    { successful: true },
+    { autoRuns: [autoRun] },
     "Updated AutoRun details for user: " + userID
   );
 };
@@ -1029,7 +1100,7 @@ export const cancelAutoRuns = async ({
 }: {
   userID: string;
   budgetID: string;
-}): Promise<EvercentResponse<{ successful: boolean } | null>> => {
+}): Promise<EvercentResponse<{ autoRuns: AutoRun[] } | null>> => {
   const queryRes = await execute("spEV_CancelAutomationRuns", [
     { name: "UserID", value: userID },
     { name: "BudgetID", value: budgetID },
@@ -1041,7 +1112,7 @@ export const cancelAutoRuns = async ({
   }
 
   return getResponse(
-    { successful: true },
+    { autoRuns: [] },
     "Canceled upcoming AutoRuns for user: " + userID
   );
 };

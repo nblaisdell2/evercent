@@ -1,12 +1,9 @@
-import React from "react";
 import { log } from "./utils/log";
 import { find, generateUUID, getDistinctValues } from "./utils/util";
 import { PayFrequency, getAmountByPayFrequency } from "./user";
 import { BudgetMonth } from "./budget";
-import { CategoryGroup } from "./category";
-import { sendEmail } from "./utils/email";
-import EvercentAutoRunEmail from "./component/EvercentAutoRunEmail";
-import { format, parseISO } from "date-fns";
+import { CategoryGroup, PostingMonth } from "./category";
+import { parseISO } from "date-fns";
 
 export type AutoRun = {
   runID: string;
@@ -425,74 +422,6 @@ export const getAutoRunDetails = (
   return autoRuns;
 };
 
-export const generateAutoRunResultsEmail = async (
-  emailResults: any,
-  userEmail: string,
-  runTime: string,
-  budgetMonth: BudgetMonth
-) => {
-  // Sort the groups by their order in YNAB,
-  let sortedResults = emailResults.sort(
-    (a: any, b: any) =>
-      (budgetMonth as BudgetMonth).groups.findIndex(
-        (cg) => cg.categoryGroupID.toLowerCase() == a.groupID.toLowerCase()
-      ) -
-      (budgetMonth as BudgetMonth).groups.findIndex(
-        (cg) => cg.categoryGroupID.toLowerCase() == b.groupID.toLowerCase()
-      )
-  );
-  // Then sort the categories within each of the groups based on their order in YNAB
-  for (let i = 0; i < sortedResults.length; i++) {
-    let currGroup = find(
-      (budgetMonth as BudgetMonth).groups,
-      (cg) =>
-        cg.categoryGroupID.toLowerCase() ==
-        sortedResults[i].groupID.toLowerCase()
-    );
-    sortedResults[i].categories = sortedResults[i].categories.sort(
-      (a: any, b: any) =>
-        currGroup.categories.findIndex(
-          (c) => c.categoryID.toLowerCase() == a.categoryID.toLowerCase()
-        ) -
-        currGroup.categories.findIndex(
-          (c) => c.categoryID.toLowerCase() == b.categoryID.toLowerCase()
-        )
-    );
-  }
-
-  await sendAutoRunEmail(userEmail, runTime, sortedResults);
-};
-
-const sendAutoRunEmail = async function (
-  userEmail: string,
-  runTime: string,
-  autoRunGroups: AutoRunCategoryGroup[]
-) {
-  const info = await sendEmail({
-    emailComponent: (
-      <EvercentAutoRunEmail
-        runTime={format(
-          parseISO(new Date(runTime).toISOString()),
-          "MM/dd/yyyy @ h:mma"
-        )}
-        results={autoRunGroups}
-      />
-    ),
-    from: '"Evercent" <nblaisdell2@gmail.com>',
-    to: userEmail,
-    subject: "Budget Automation Results",
-    attachments: [
-      {
-        filename: "evercent_logo.png",
-        path: __dirname + "/../public/evercent_logo.png",
-        cid: "logo",
-      },
-    ],
-  });
-
-  console.log("Message sent: %s", info.messageId);
-};
-
 export const getAutoRunCategories = (
   autoRuns: AutoRun[]
 ): AutoRunCategory[] => {
@@ -531,3 +460,154 @@ export const getExcludedCategoryMonths = (
 
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
+
+export const generateAutoRunCategoryGroups = (
+  categories: CategoryGroup[],
+  payFreq: PayFrequency
+) => {
+  log("GENERATING from", categories);
+
+  let returnGroups: AutoRunCategoryGroup[] = [];
+  let returnCategories: AutoRunCategory[] = [];
+  let returnPostingMonths: AutoRunCategoryMonth[] = [];
+
+  returnGroups = [];
+  for (let i = 0; i < categories.length; i++) {
+    const currGroup = categories[i];
+    returnCategories = [];
+
+    for (let j = 0; j < currGroup.categories.length; j++) {
+      const currCategory = currGroup.categories[j];
+      returnPostingMonths = [];
+
+      if (currCategory.adjustedAmount > 0) {
+        for (let k = 0; k < currCategory.postingMonths.length; k++) {
+          const currPM = currCategory.postingMonths[k];
+          // const dbCats = .filter(
+          //   (c) =>
+          //     c.CategoryGUID?.toLowerCase() ==
+          //       currCategory.guid.toLowerCase() &&
+          //     c.PostingMonth &&
+          //     new Date(currPM.month).toISOString() ==
+          //       new Date(c.PostingMonth).toISOString()
+          // );
+
+          // const isIncluded = dbCats.at(0) ? dbCats[0].IsIncluded : true;
+
+          returnPostingMonths.push({
+            postingMonth: currPM.month,
+            included: true, // isIncluded,
+            amountToPost: currPM.amount,
+          });
+        }
+
+        returnCategories.push({
+          categoryGUID: currCategory.guid,
+          categoryID: currCategory.categoryID,
+          categoryName: currCategory.name,
+          categoryAmount: currCategory.amount,
+          categoryExtraAmount: currCategory.extraAmount,
+          categoryAdjustedAmount: currCategory.adjustedAmount,
+          categoryAdjustedAmountPerPaycheck: getAmountByPayFrequency(
+            currCategory.adjustedAmountPlusExtra,
+            payFreq
+          ),
+          postingMonths: returnPostingMonths,
+          included:
+            currCategory.regularExpenseDetails == null
+              ? true
+              : currCategory.regularExpenseDetails.includeOnChart,
+        });
+      }
+    }
+
+    if (returnCategories.length > 0) {
+      returnGroups.push({
+        groupID: currGroup.groupID,
+        groupName: currGroup.groupName,
+        categories: returnCategories,
+      });
+    }
+  }
+
+  return returnGroups;
+};
+
+export const getValidAutoRuns = (autoRuns: AutoRun[]) => {
+  return autoRuns.reduce((prev, curr) => {
+    const newGroups = curr.categoryGroups.filter((cg) =>
+      cg.categories.some((c) => c.included)
+    );
+    if (newGroups.length > 0) {
+      return [...prev, { ...curr, categoryGroups: newGroups }];
+    }
+    return prev;
+  }, [] as AutoRun[]);
+};
+
+export const getAutoRunPostingMonths = (autoRun: AutoRun) => {
+  const categories = getAutoRunCategories([autoRun]);
+  const newMonths = new Map<string, PostingMonth>();
+  let total = 0;
+  for (let i = 0; i < categories.length; i++) {
+    if (!categories[i].included) continue;
+
+    const months = categories[i].postingMonths;
+
+    for (let j = 0; j < months.length; j++) {
+      const currMonth = months[j];
+      if (currMonth.included || currMonth.amountPosted != undefined) {
+        const monthStr = currMonth.postingMonth.substring(0, 10);
+        if (!newMonths.has(monthStr)) {
+          newMonths.set(monthStr, {
+            month: monthStr,
+            amount: 0,
+            percent: 0,
+          });
+        }
+
+        const amtToAdd =
+          currMonth.amountPosted != undefined
+            ? currMonth.amountPosted
+            : currMonth.amountToPost;
+        total += amtToAdd;
+        (newMonths.get(monthStr) as PostingMonth).amount += amtToAdd;
+      }
+    }
+  }
+
+  let newPostingMonths: PostingMonth[] = [];
+  newMonths.forEach((v, k) => {
+    newPostingMonths.push({
+      ...v,
+      percent: v.amount / total,
+    });
+  });
+  newPostingMonths.sort(
+    (a, b) => parseISO(a.month).getTime() - parseISO(b.month).getTime()
+  );
+
+  return newPostingMonths;
+};
+
+export const getAutoRunCategoryTotal = (autoRunCategory: AutoRunCategory) => {
+  if (!autoRunCategory.included) return 0;
+  return autoRunCategory.postingMonths.reduce((prev, curr) => {
+    if (!curr.included) return prev;
+    return prev + (curr.amountPosted ? curr.amountPosted : curr.amountToPost);
+  }, 0);
+};
+
+export const getAutoRunCategoryGroupTotal = (
+  autoRunCategoryGroup: AutoRunCategoryGroup
+) => {
+  return autoRunCategoryGroup.categories.reduce((prev, curr) => {
+    return prev + getAutoRunCategoryTotal(curr);
+  }, 0);
+};
+
+export const getAutoRunTotal = (autoRun: AutoRun) => {
+  return autoRun.categoryGroups.reduce((prev, curr) => {
+    return prev + getAutoRunCategoryGroupTotal(curr);
+  }, 0);
+};
