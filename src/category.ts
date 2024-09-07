@@ -286,7 +286,9 @@ export const calculateAdjustedAmount = (
 
   let numMonths = 0;
   if (!recalculate) {
-    numMonths = category.regularExpenseDetails.monthsDivisor;
+    numMonths = override
+      ? getNumberOfMonthsByFrequency(category.regularExpenseDetails)
+      : category.regularExpenseDetails.monthsDivisor;
   } else if (category.regularExpenseDetails.nextDueDate) {
     // // Get BudgetMonthCategory from the same month of
     // // this category's next due date
@@ -479,20 +481,31 @@ export const getPostingMonths = (
       // recalculate totalDesired using repeat frequency here
       // because of non-monthly regular expense && due date month is currMonth
       // && ynab available == category.amount
+      const next = parseISO(
+        category.regularExpenseDetails?.nextDueDate as string
+      );
+      const sameMonth = isSameMonth(next, currMonth);
       if (
-        dueDateAndAmountSet(
-          category.regularExpenseDetails?.isMonthly,
-          category.regularExpenseDetails?.nextDueDate,
-          category.amount,
-          bc,
-          currMonth
-        )
+        (!useOverride &&
+          dueDateAndAmountSet(
+            category.regularExpenseDetails?.isMonthly,
+            category.regularExpenseDetails?.nextDueDate,
+            category.amount,
+            bc,
+            currMonth
+          )) ||
+        (useOverride && sameMonth)
       ) {
         if (DEBUG(category))
           log(
             "Recalculating totalDesired due to due date being met for category!"
           );
-        totalDesired = calculateAdjustedAmount(category, months, true, false);
+        totalDesired = calculateAdjustedAmount(
+          category,
+          months,
+          false,
+          useOverride
+        );
       }
     }
 
