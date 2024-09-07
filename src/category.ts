@@ -10,7 +10,6 @@ import {
   startOfToday,
 } from "date-fns";
 import { log } from "./utils/log";
-// import { execute, query, sqlErr } from "./utils/sql";
 import { find, generateUUID, roundNumber, sum } from "./utils/util";
 import { PayFrequency, UserData, getAmountByPayFrequency } from "./user";
 import {
@@ -18,12 +17,20 @@ import {
   BudgetMonth,
   BudgetMonthCategory,
   BudgetMonthCategoryGroup,
-  getBudgetCategories,
   getBudgetCategory,
   getBudgetCategoryForMonth,
   getBudgetMonth,
 } from "./budget";
-import { EvercentResponse, getResponse, getResponseError } from "./evercent";
+
+let DEBUG_CATEGORY: string | null = null;
+
+export const setDebugCategory = (category: string) => {
+  DEBUG_CATEGORY = category;
+};
+
+export const DEBUG = (category: Category) => {
+  return category.name == DEBUG_CATEGORY;
+};
 
 type CategoryDataDB = {
   BudgetID: string;
@@ -182,7 +189,7 @@ const createCategory = (
     monthsAhead: 0,
     postingMonths: [],
   };
-  const adjAmount = calculateAdjustedAmount(category, months, false);
+  const adjAmount = calculateAdjustedAmount(category, months, true);
   category.adjustedAmount = adjAmount;
   category.adjustedAmountPlusExtra = adjAmount + category.extraAmount;
 
@@ -213,7 +220,7 @@ const createRegularExpenses = (
   return {
     guid: dbCat.CategoryGUID,
     isMonthly: dbCat.IsMonthly,
-    nextDueDate: dbCat.NextDueDate,
+    nextDueDate: new Date(dbCat.NextDueDate).toISOString(),
     monthsDivisor: dbCat.ExpenseMonthsDivisor,
     repeatFreqNum: dbCat.RepeatFreqNum,
     repeatFreqType: dbCat.RepeatFreqType,
@@ -278,19 +285,23 @@ const calculateAdjustedAmount = (
   let numMonths = 0;
   if (!recalculate) {
     numMonths = category.regularExpenseDetails.monthsDivisor;
-  } else {
+  } else if (category.regularExpenseDetails.nextDueDate) {
     // Get BudgetMonthCategory from the same month of
     // this category's next due date
     log("calculating adjusted amount");
+    log(category.regularExpenseDetails);
+
     const budgetMonth = getBudgetMonth(
       months,
       parseISO(category.regularExpenseDetails.nextDueDate)
     );
+    log("bm", budgetMonth);
     const budgetCategory = getBudgetCategory(
       budgetMonth,
       category.categoryGroupID,
       category.categoryID
     );
+    log("bc", budgetCategory);
 
     if (budgetCategory.available >= category.amount) {
       numMonths = getNumberOfMonthsByFrequency(category.regularExpenseDetails);
@@ -327,7 +338,8 @@ const calculateAdjustedAmount = (
     finalAdjAmt = catAmtByFreq;
   }
 
-  if (!Number.isInteger(finalAdjAmt)) {
+  const lastDigit = (finalAdjAmt * 100) % 10;
+  if (![0, 5].includes(lastDigit)) {
     log("NOT A WHOLE NUMBER", finalAdjAmt);
     finalAdjAmt += 0.01;
   } else {
@@ -361,9 +373,7 @@ export const getPostingMonths = (
   nextPaydate: string,
   overrideNum?: number | undefined
 ): PostingMonth[] => {
-  const DEBUG = category.name == "YNAB";
-
-  if (DEBUG) log("category", { category, payFreq, nextPaydate });
+  if (DEBUG(category)) log("category", { category, payFreq, nextPaydate });
 
   let postingMonths: PostingMonth[] = [];
   const useOverride = overrideNum != undefined;
@@ -376,7 +386,7 @@ export const getPostingMonths = (
 
   let currMonth = parseISO(nextPaydate);
 
-  if (DEBUG) log("amounts", { totalAmt, totalDesired, currMonth });
+  if (DEBUG(category)) log("amounts", { totalAmt, totalDesired, currMonth });
 
   // Keep finding months until
   //  1. We run out of money (totalAmt)
@@ -415,7 +425,7 @@ export const getPostingMonths = (
       desiredPostAmt = totalDesired;
     }
 
-    if (DEBUG) log("desiredPostAmt", { desiredPostAmt });
+    if (DEBUG(category)) log("desiredPostAmt", { desiredPostAmt });
 
     if (
       isEqual(parseISO(bm.month), startOfMonth(new Date())) &&
@@ -450,7 +460,7 @@ export const getPostingMonths = (
         amount: roundNumber(postAmt, 2),
         percent: 0,
       });
-      if (DEBUG)
+      if (DEBUG(category))
         log("Added month", {
           month: month,
           amount: roundNumber(postAmt, 2),
@@ -471,7 +481,7 @@ export const getPostingMonths = (
           currMonth
         )
       ) {
-        if (DEBUG)
+        if (DEBUG(category))
           log(
             "Recalculating totalDesired due to due date being met for category!"
           );
