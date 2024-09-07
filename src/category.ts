@@ -382,7 +382,10 @@ export const getPostingMonths = (
     getAmountByPayFrequency(category.adjustedAmountPlusExtra, payFreq),
     2
   );
-  let totalDesired = roundNumber(category.adjustedAmount, 2);
+  let totalDesired = roundNumber(
+    useOverride ? category.amount : category.adjustedAmount,
+    2
+  );
 
   let currMonth = parseISO(nextPaydate);
 
