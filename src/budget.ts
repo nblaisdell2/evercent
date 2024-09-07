@@ -276,21 +276,21 @@ export const getTotalAvailableInBudget = (budget: Budget) => {
   // Check to see if there's any money in the "To Be Assigned" section
   // from the first (current) budget month
   const tbb = budget.months[0].tbb;
-  log("Adding to Total Available (TBB):", tbb);
+  // log("Adding to Total Available (TBB):", tbb);
 
   // Go through all the "available" amounts for the latest budget month
   const finalBM = budget.months[budget.months.length - 1];
-  log("Final BM", finalBM);
+  // log("Final BM", finalBM);
   const available = finalBM.groups.reduce((prev, curr) => {
     const groupTotal = curr.categories.reduce((prev2, curr2) => {
       if (curr2.hidden || curr2.deleted) return prev2;
       return prev2 + curr2.available;
     }, 0);
-    log(
-      "Adding to Total Available (group):",
-      curr.categoryGroupName,
-      groupTotal
-    );
+    // log(
+    //   "Adding to Total Available (group):",
+    //   curr.categoryGroupName,
+    //   groupTotal
+    // );
     return prev + groupTotal;
   }, 0);
 
