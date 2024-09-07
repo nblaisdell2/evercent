@@ -268,7 +268,8 @@ export const calculateAdjustedAmount = (
   category: Category,
   months: BudgetMonth[],
   recalculate: boolean,
-  override: boolean
+  override: boolean,
+  totalSaved?: number
 ): number => {
   // If it's not a regular expense, or if it is a regular expense,
   // and it's a monthly expense, simply return the user's entered category amount
@@ -307,7 +308,10 @@ export const calculateAdjustedAmount = (
     );
     // log("bc", budgetCategory);
 
-    if (!override && budgetCategory.available >= category.amount) {
+    if (
+      !override &&
+      (totalSaved ?? budgetCategory.available) >= category.amount
+    ) {
       numMonths = getNumberOfMonthsByFrequency(category.regularExpenseDetails);
     } else {
       // Calculate the # of months between today and the
@@ -505,8 +509,9 @@ export const getPostingMonths = (
         totalDesired = calculateAdjustedAmount(
           category,
           months,
-          false,
-          useOverride
+          !useOverride,
+          useOverride,
+          totalSaved
         );
       }
     }
