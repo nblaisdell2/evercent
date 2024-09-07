@@ -485,6 +485,7 @@ export const getPostingMonths = (
         category.regularExpenseDetails?.nextDueDate as string
       );
       const sameMonth = isSameMonth(next, currMonth);
+      const totalSaved = sum(postingMonths, "amount");
       if (
         (!useOverride &&
           dueDateAndAmountSet(
@@ -492,7 +493,8 @@ export const getPostingMonths = (
             category.regularExpenseDetails?.nextDueDate,
             category.amount,
             bc,
-            currMonth
+            currMonth,
+            totalSaved
           )) ||
         (useOverride && sameMonth)
       ) {
@@ -575,7 +577,8 @@ export const dueDateAndAmountSet = (
   nextDueDate: string | undefined,
   categoryAmount: number,
   budgetCategory: BudgetMonthCategory,
-  currMonth: Date
+  currMonth: Date,
+  totalSaved?: number
 ) => {
   // We have a non-monthly regular expense, we've posted an amount
   // to this category AND not only is the month we posted to the same
@@ -585,7 +588,8 @@ export const dueDateAndAmountSet = (
   if (isMonthly == undefined || isMonthly) return false;
   const dtNextDueDate = parseISO(nextDueDate as string);
   const sameMonth = isSameMonth(dtNextDueDate, currMonth);
-  const enoughAvailable = budgetCategory.available >= categoryAmount;
+  const enoughAvailable =
+    (totalSaved ?? budgetCategory.available) >= categoryAmount;
   return sameMonth && enoughAvailable;
 };
 
