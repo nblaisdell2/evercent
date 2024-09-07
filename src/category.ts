@@ -5,6 +5,7 @@ import {
   differenceInMonths,
   isEqual,
   isSameDay,
+  isSameMonth,
   parseISO,
   startOfMonth,
   startOfToday,
@@ -189,7 +190,7 @@ const createCategory = (
     monthsAhead: 0,
     postingMonths: [],
   };
-  const adjAmount = calculateAdjustedAmount(category, months, true);
+  const adjAmount = calculateAdjustedAmount(category, months, true, false);
   category.adjustedAmount = adjAmount;
   category.adjustedAmountPlusExtra = adjAmount + category.extraAmount;
 
@@ -263,10 +264,11 @@ const sameCategory = (
 // ---------------------------------------------------------
 // ---------------------------------------------------------
 
-const calculateAdjustedAmount = (
+export const calculateAdjustedAmount = (
   category: Category,
   months: BudgetMonth[],
-  recalculate: boolean
+  recalculate: boolean,
+  override: boolean
 ): number => {
   // If it's not a regular expense, or if it is a regular expense,
   // and it's a monthly expense, simply return the user's entered category amount
@@ -286,24 +288,24 @@ const calculateAdjustedAmount = (
   if (!recalculate) {
     numMonths = category.regularExpenseDetails.monthsDivisor;
   } else if (category.regularExpenseDetails.nextDueDate) {
-    // Get BudgetMonthCategory from the same month of
-    // this category's next due date
-    log("calculating adjusted amount");
-    log(category.regularExpenseDetails);
+    // // Get BudgetMonthCategory from the same month of
+    // // this category's next due date
+    // log("calculating adjusted amount");
+    // log(category.regularExpenseDetails);
 
     const budgetMonth = getBudgetMonth(
       months,
       parseISO(category.regularExpenseDetails.nextDueDate)
     );
-    log("bm", budgetMonth);
+    // log("bm", budgetMonth);
     const budgetCategory = getBudgetCategory(
       budgetMonth,
       category.categoryGroupID,
       category.categoryID
     );
-    log("bc", budgetCategory);
+    // log("bc", budgetCategory);
 
-    if (budgetCategory.available >= category.amount) {
+    if (!override && budgetCategory.available >= category.amount) {
       numMonths = getNumberOfMonthsByFrequency(category.regularExpenseDetails);
     } else {
       // Calculate the # of months between today and the
@@ -383,11 +385,13 @@ export const getPostingMonths = (
     2
   );
   let totalDesired = roundNumber(
-    useOverride ? category.amount : category.adjustedAmount,
+    useOverride
+      ? calculateAdjustedAmount(category, months, true, useOverride)
+      : category.adjustedAmount,
     2
   );
 
-  let currMonth = parseISO(nextPaydate);
+  let currMonth = startOfMonth(parseISO(nextPaydate));
 
   if (DEBUG(category)) log("amounts", { totalAmt, totalDesired, currMonth });
 
@@ -488,7 +492,7 @@ export const getPostingMonths = (
           log(
             "Recalculating totalDesired due to due date being met for category!"
           );
-        totalDesired = calculateAdjustedAmount(category, months, true);
+        totalDesired = calculateAdjustedAmount(category, months, true, false);
       }
     }
 
@@ -567,10 +571,9 @@ export const dueDateAndAmountSet = (
   // so this check will allow us to re-calculate accordingly.
   if (isMonthly == undefined || isMonthly) return false;
   const dtNextDueDate = parseISO(nextDueDate as string);
-  return (
-    startOfMonth(dtNextDueDate) == currMonth &&
-    budgetCategory.available >= categoryAmount
-  );
+  const sameMonth = isSameMonth(dtNextDueDate, currMonth);
+  const enoughAvailable = budgetCategory.available >= categoryAmount;
+  return sameMonth && enoughAvailable;
 };
 
 //////////////////////////////////////////////////////////////////
@@ -843,7 +846,8 @@ const calculateCategoryFields = (
     const newAdjustedAmount = calculateAdjustedAmount(
       newCategory,
       budget.months,
-      true
+      true,
+      false
     );
     log("new adjusted amount", newAdjustedAmount);
     newCategory.adjustedAmount = newAdjustedAmount;

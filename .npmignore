@@ -3,5 +3,7 @@
 
 .env
 
+/dist/index*
+
 tsconfig.json
 tsup.config.ts
