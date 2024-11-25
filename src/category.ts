@@ -291,10 +291,10 @@ export const calculateAdjustedAmount = (
       ? getNumberOfMonthsByFrequency(category.regularExpenseDetails)
       : category.regularExpenseDetails.monthsDivisor;
   } else if (category.regularExpenseDetails.nextDueDate) {
-    // // Get BudgetMonthCategory from the same month of
-    // // this category's next due date
-    // log("calculating adjusted amount");
-    // log(category.regularExpenseDetails);
+    // Get BudgetMonthCategory from the same month of
+    // this category's next due date
+    log("calculating adjusted amount");
+    log(category.regularExpenseDetails);
 
     const budgetMonth = getBudgetMonth(
       months,
@@ -306,7 +306,7 @@ export const calculateAdjustedAmount = (
       category.categoryGroupID,
       category.categoryID
     );
-    // log("bc", budgetCategory);
+    log("bc", budgetCategory);
 
     if (
       !override &&
@@ -321,6 +321,17 @@ export const calculateAdjustedAmount = (
         parseISO(category.regularExpenseDetails.nextDueDate)
       );
       numMonths = differenceInMonths(dtDueDate, dtThisMonth) + 1;
+
+      // If the numMonths == 1, we are ON the month that a particular expense is due
+      // BUT, if the activity for that category is less than 0, it means it's already
+      // been paid, so we need to *re*-re-calculate by the frequency for that expense
+      log("numMonths =", numMonths);
+      if (numMonths == 1 && budgetCategory.activity < 0) {
+        numMonths = getNumberOfMonthsByFrequency(
+          category.regularExpenseDetails
+        );
+        log("NEW numMonths =", numMonths);
+      }
     }
   }
 
