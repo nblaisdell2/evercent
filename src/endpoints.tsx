@@ -1049,7 +1049,8 @@ export const getAutoRunData = async ({
               c,
               budgetMonths,
               payFrequency,
-              new Date(queryRes.resultData[0][0].RunTime).toISOString()
+              // @ts-ignore
+              new Date(queryRes.resultData[0][0].RunTime)
             ),
           };
         }),
@@ -1374,7 +1375,8 @@ export const getAllEvercentData = async ({
     userData.userID,
     userData.budgetID,
     userData.payFrequency,
-    userData.nextPaydate
+    // @ts-ignore
+    parseISO(userData.nextPaydate)
   );
   if (dataRes.err || !dataRes.data) {
     return getResponseError(dataRes.err);
