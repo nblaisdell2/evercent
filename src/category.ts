@@ -408,7 +408,8 @@ export const getPostingMonths = (
     2
   );
 
-  let currMonth = startOfMonth(parseISO(nextPaydate));
+  // @ts-ignore - should be a Date object, even though it's a string
+  let currMonth = startOfMonth(nextPaydate);
 
   if (DEBUG(category)) log("amounts", { totalAmt, totalDesired, currMonth });
 
