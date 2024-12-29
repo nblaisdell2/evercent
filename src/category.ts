@@ -480,7 +480,7 @@ export const getPostingMonths = (
       // ).toISOString();
       const month = parseISO(bm.month).toISOString();
       postingMonths.push({
-        month: month,
+        month: bm.month,
         amount: roundNumber(postAmt, 2),
         percent: 0,
       });
