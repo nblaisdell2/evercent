@@ -1395,13 +1395,6 @@ export const getAllEvercentData = async ({
     allData.budget = removeHiddenCategoriesFromBudget(allData.budget as Budget);
   }
 
-  logDB({
-    logLevel: "Success",
-    statusCode: 200,
-    msg: "Got ALL Evercent data for user: " + userEmail,
-    timestamp: new Date().toISOString(),
-  });
-
   return getResponse(allData, "Got ALL Evercent data for user: " + userEmail);
 };
 
