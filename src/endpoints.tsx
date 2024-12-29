@@ -91,6 +91,28 @@ export const getUserData = async ({
   );
 };
 
+export const logDB = async function ({
+  logLevel,
+  statusCode,
+  msg,
+  msgAdditional,
+  timestamp,
+}: {
+  logLevel: string;
+  statusCode: number;
+  msg: string;
+  msgAdditional?: string;
+  timestamp: string;
+}) {
+  await execute("spEV_AddLog", [
+    { name: "LogLevel", value: logLevel },
+    { name: "StatusCode", value: statusCode },
+    { name: "LogMessage", value: msg },
+    { name: "LogMessageAdditional", value: msgAdditional },
+    { name: "LogTimestamp", value: timestamp },
+  ]);
+};
+
 export const updateUserDetails = async function ({
   userID,
   budgetID,
@@ -1372,6 +1394,13 @@ export const getAllEvercentData = async ({
     // budget months to remove those hidden/deleted categories/groups, as the application expects.
     allData.budget = removeHiddenCategoriesFromBudget(allData.budget as Budget);
   }
+
+  logDB({
+    logLevel: "Success",
+    statusCode: 200,
+    msg: "Got ALL Evercent data for user: " + userEmail,
+    timestamp: new Date().toISOString(),
+  });
 
   return getResponse(allData, "Got ALL Evercent data for user: " + userEmail);
 };
