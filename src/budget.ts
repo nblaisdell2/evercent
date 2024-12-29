@@ -92,7 +92,7 @@ const createBudgetMonths = (
         ...prev,
         {
           groups,
-          month: curr.month,
+          month: ynabMonth.toISOString(),
           tbb: 0,
         },
       ];
@@ -119,7 +119,7 @@ const createBudgetMonths = (
       currMonth = addMonths(currMonth, 1);
       newMonths.push({
         ...lastMonth,
-        month: currMonth.toISOString().substring(0, 10),
+        month: currMonth.toISOString(),
       });
     }
   }
@@ -246,7 +246,7 @@ export const getBudgetCategoryForMonth = (
 
 export const getBudgetMonth = (months: BudgetMonth[], dt: Date) => {
   const dtNextDueDateMonth = startOfMonth(dt);
-  const monthStr = dtNextDueDateMonth.toISOString().substring(0, 10);
+  const monthStr = dtNextDueDateMonth.toISOString();
 
   // Get BudgetMonthCategory from the same month of
   // this category's next due date
