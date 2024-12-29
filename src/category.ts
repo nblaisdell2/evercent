@@ -486,7 +486,7 @@ export const getPostingMonths = (
       });
       if (DEBUG(category))
         log("Added month", {
-          month: month,
+          month: bm.month,
           amount: roundNumber(postAmt, 2),
           percent: 0,
         });
