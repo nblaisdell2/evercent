@@ -58,7 +58,7 @@ import {
   getExcludedCategoryMonths,
   LockedResult,
 } from "./autoRun";
-import { addHours, format, parseISO } from "date-fns";
+import { addHours, format, parse, parseISO } from "date-fns";
 import { sendEmail } from "./utils/email";
 import React from "react";
 import EvercentAutoRunEmail from "./component/EvercentAutoRunEmail";
@@ -321,6 +321,16 @@ const getYNABBudgetData = async (
 
   let budgetData = data.data.budget as YNABBudget;
 
+  // Loop through the "months" object in the retrieved JSON object
+  // from YNAB and conver the "date-only" "month" value to an ISO
+  // "datetime" value, so that we get consistent times no matter the server
+  budgetData.months = budgetData.months.map((m) => {
+    return {
+      ...m,
+      month: parse(m.month, "yyyy-MM-dd", new Date()).toISOString(),
+    };
+  });
+
   // Filter unwanted category groups BEFORE sending back to the user, so I don't
   // have to remember to do it everywhere else
   // Keeps any hidden/deleted groups, however, in case we need the details for any
@@ -476,6 +486,9 @@ export const getBudget = async ({
       `Could not retrieve budget details from YNAB for user/budget: ${userID} / ${budgetID}`
     );
   }
+
+  console.log("============ YNAB BUDGET DETAILS ================");
+  console.log(budget);
 
   // If we got the YNAB Budget data, convert it into our own
   // Budget object before sending to the user
