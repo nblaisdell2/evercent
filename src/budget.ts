@@ -1,4 +1,5 @@
 import { addMonths, isEqual, parseISO, startOfMonth } from "date-fns";
+import { format, utcToZonedTime, formatInTimeZone } from "date-fns-tz";
 import {
   YNABBudget,
   YNABBudgetMonth,
@@ -13,7 +14,6 @@ import {
   isRegularExpense,
   PostingMonth,
 } from "./category";
-import { format, utcToZonedTime } from "date-fns-tz";
 
 const DEBUG = !!process.env.DEBUG;
 
@@ -68,14 +68,8 @@ export const createBudget = (budgetData: YNABBudget) => {
   };
 };
 
-const formatInTimeZone = (
-  date: string | number | Date,
-  fmt: string,
-  tz: string
-) => format(utcToZonedTime(date, tz), fmt, { timeZone: tz });
-
 const getUTCString = (parsedTime: string | number | Date) => {
-  return formatInTimeZone(parsedTime, "yyyy-MM-dd kk:mm:ss xxx", "UTC");
+  return formatInTimeZone(parsedTime, "UTC", "yyyy-MM-dd kk:mm:ss xxx");
 };
 
 const createBudgetMonths = (
