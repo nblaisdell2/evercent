@@ -13,6 +13,7 @@ import {
   isRegularExpense,
   PostingMonth,
 } from "./category";
+import { format, utcToZonedTime } from "date-fns-tz";
 
 const DEBUG = !!process.env.DEBUG;
 
@@ -67,6 +68,16 @@ export const createBudget = (budgetData: YNABBudget) => {
   };
 };
 
+const formatInTimeZone = (
+  date: string | number | Date,
+  fmt: string,
+  tz: string
+) => format(utcToZonedTime(date, tz), fmt, { timeZone: tz });
+
+const getUTCString = (parsedTime: string | number | Date) => {
+  return formatInTimeZone(parsedTime, "yyyy-MM-dd kk:mm:ss xxx", "UTC");
+};
+
 const createBudgetMonths = (
   months: YNABBudgetMonth[],
   category_groups: YNABCategoryGroup[],
@@ -92,7 +103,8 @@ const createBudgetMonths = (
         ...prev,
         {
           groups,
-          month: ynabMonth.toUTCString(),
+          month: getUTCString(ynabMonth),
+          // month: ynabMonth.toISOString(),
           tbb: 0,
         },
       ];
@@ -119,7 +131,7 @@ const createBudgetMonths = (
       currMonth = addMonths(currMonth, 1);
       newMonths.push({
         ...lastMonth,
-        month: currMonth.toISOString(),
+        month: getUTCString(currMonth),
       });
     }
   }
