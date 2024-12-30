@@ -92,7 +92,7 @@ const createBudgetMonths = (
         ...prev,
         {
           groups,
-          month: ynabMonth.toISOString(),
+          month: ynabMonth.toUTCString(),
           tbb: 0,
         },
       ];
