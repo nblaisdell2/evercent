@@ -23,9 +23,10 @@ function EvercentAutoRunEmail({ runTime, results }: Props) {
   let totalPosted = 0;
   for (let i = 0; i < results.length; i++) {
     for (let j = 0; j < results[i].categories.length; j++) {
-      for (let k = 0; k < results[i].categories[j].postingMonths.length; k++) {
-        totalPosted +=
-          results[i].categories[j].postingMonths[k].amountPosted || 0;
+      // @ts-ignore
+      for (let k = 0; k < results[i].categories[j].months.length; k++) {
+        // @ts-ignore
+        totalPosted += results[i].categories[j].months[k].amountPosted || 0;
       }
     }
   }
@@ -164,7 +165,7 @@ function EvercentAutoRunEmail({ runTime, results }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {results.map((g) => {
+                  {results?.map((g) => {
                     return (
                       <div key={g.groupName}>
                         <tr style={{ fontSize: "125%", fontWeight: "bold" }}>
@@ -172,7 +173,7 @@ function EvercentAutoRunEmail({ runTime, results }: Props) {
                             <u>{g.groupName}</u>
                           </td>
                         </tr>
-                        {g.categories.map((c) => {
+                        {g?.categories?.map((c) => {
                           return (
                             <div key={c.categoryName}>
                               <tr style={{ fontSize: "110%" }}>
@@ -184,70 +185,73 @@ function EvercentAutoRunEmail({ runTime, results }: Props) {
                                   {c.categoryName}
                                 </td>
                               </tr>
-                              {c.postingMonths.map((m) => {
-                                return (
-                                  <tr
-                                    key={m.postingMonth}
-                                    style={{
-                                      borderBottom: "8px solid transparent",
-                                    }}
-                                  >
-                                    <td
+                              {
+                                // @ts-ignore
+                                c?.months?.map((m) => {
+                                  return (
+                                    <tr
+                                      key={m.monthName}
                                       style={{
-                                        width: "40%",
-                                        textAlign: "left",
-                                        paddingLeft: "30px",
-                                        color: "#aaa",
-                                        fontWeight: "bold",
+                                        borderBottom: "8px solid transparent",
                                       }}
                                     >
-                                      {format(
-                                        parseISO(
-                                          new Date(m.postingMonth)
-                                            .toISOString()
-                                            .substring(0, 10)
-                                        ),
-                                        "MMM yyyy"
-                                      ).toUpperCase()}
-                                    </td>
-                                    <td
-                                      style={{
-                                        width: "30%",
-                                        textAlign: "right",
-                                      }}
-                                    >
-                                      {"$" +
-                                        roundNumber(
-                                          m.amountPosted || 0,
-                                          2
-                                        ).toString()}
-                                    </td>
-                                    <td
-                                      style={{
-                                        width: "30%",
-                                        textAlign: "right",
-                                      }}
-                                    >
-                                      <span
+                                      <td
                                         style={{
-                                          backgroundColor: "green",
-                                          color: "white",
-                                          borderRadius: "10px",
+                                          width: "40%",
+                                          textAlign: "left",
+                                          paddingLeft: "30px",
+                                          color: "#aaa",
                                           fontWeight: "bold",
-                                          padding: "3px",
-                                          margin: "2px",
+                                        }}
+                                      >
+                                        {format(
+                                          parseISO(
+                                            new Date(m.monthName)
+                                              .toISOString()
+                                              .substring(0, 10)
+                                          ),
+                                          "MMM yyyy"
+                                        ).toUpperCase()}
+                                      </td>
+                                      <td
+                                        style={{
+                                          width: "30%",
+                                          textAlign: "right",
                                         }}
                                       >
                                         {"$" +
                                           roundNumber(
-                                            m.newAmountBudgeted || 0,
+                                            m.amountPosted || 0,
                                             2
                                           ).toString()}
-                                      </span>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
+                                      </td>
+                                      <td
+                                        style={{
+                                          width: "30%",
+                                          textAlign: "right",
+                                        }}
+                                      >
+                                        <span
+                                          style={{
+                                            backgroundColor: "green",
+                                            color: "white",
+                                            borderRadius: "10px",
+                                            fontWeight: "bold",
+                                            padding: "3px",
+                                            margin: "2px",
+                                          }}
+                                        >
+                                          {"$" +
+                                            roundNumber(
+                                              m.newAmtBudgeted || 0,
+                                              2
+                                            ).toString()}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  );
+                                })
+                              }
                             </div>
                           );
                         })}
