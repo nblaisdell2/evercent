@@ -1,4 +1,4 @@
-import { addMonths, isEqual, parseISO, startOfMonth } from "date-fns";
+import { addMonths, isEqual, parse, parseISO, startOfMonth } from "date-fns";
 import { format, utcToZonedTime, formatInTimeZone } from "date-fns-tz";
 import {
   YNABBudget,
@@ -93,8 +93,7 @@ const createBudgetMonths = (
         ...prev,
         {
           groups,
-          month: getUTCString(ynabMonth),
-          // month: ynabMonth.toISOString(),
+          month: ynabMonth.toISOString(),
           tbb: 0,
         },
       ];
@@ -121,7 +120,7 @@ const createBudgetMonths = (
       currMonth = addMonths(currMonth, 1);
       newMonths.push({
         ...lastMonth,
-        month: getUTCString(currMonth),
+        month: currMonth.toISOString(),
       });
     }
   }
