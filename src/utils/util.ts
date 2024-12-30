@@ -1,6 +1,7 @@
 import { v4 } from "uuid";
 export const generateUUID = v4;
 import { writeFile } from "fs";
+import { formatInTimeZone } from "date-fns-tz";
 
 export const roundNumber = (num: number, decimals: number = 0) => {
   const mul = Math.pow(10, decimals);
@@ -43,3 +44,7 @@ export const getDistinctValues = <T, V extends keyof T>(
 
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
+
+export const getUTCString = (parsedTime: string | number | Date) => {
+  return formatInTimeZone(parsedTime, "UTC", "yyyy-MM-dd HH:mm:ss");
+};

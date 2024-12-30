@@ -6,7 +6,7 @@ import {
   YNABCategory,
   YNABCategoryGroup,
 } from "./ynab";
-import { find, sum } from "./utils/util";
+import { find, getUTCString, sum } from "./utils/util";
 import { log } from "./utils/log";
 import {
   CategoryGroup,
@@ -66,10 +66,6 @@ export const createBudget = (budgetData: YNABBudget) => {
       budgetData.categories
     ),
   };
-};
-
-const getUTCString = (parsedTime: string | number | Date) => {
-  return formatInTimeZone(parsedTime, "UTC", "yyyy-MM-dd kk:mm:ss xxx");
 };
 
 const createBudgetMonths = (
