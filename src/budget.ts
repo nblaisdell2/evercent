@@ -251,7 +251,10 @@ export const getBudgetMonth = (months: BudgetMonth[], dt: Date) => {
 
   // Get BudgetMonthCategory from the same month of
   // this category's next due date
-  return find(months, (bm) => bm.month == monthStr);
+  return find(
+    months,
+    (bm) => bm.month.substring(0, 10) == monthStr.substring(0, 10)
+  );
 };
 
 export const getBudgetCategories = (month: BudgetMonth) => {
