@@ -1,5 +1,10 @@
 import { log } from "./utils/log";
-import { find, generateUUID, getDistinctValues } from "./utils/util";
+import {
+  find,
+  generateUUID,
+  getDistinctValues,
+  getStartOfDay,
+} from "./utils/util";
 import { PayFrequency, getAmountByPayFrequency } from "./user";
 import { BudgetMonth } from "./budget";
 import { CategoryGroup, PostingMonth } from "./category";
@@ -327,8 +332,10 @@ const calculateAutoRunCategoryGroups = (
               c.CategoryGUID?.toLowerCase() ==
                 currCategory.guid.toLowerCase() &&
               c.PostingMonth &&
-              new Date(currPM.month).toISOString() ==
-                new Date(c.PostingMonth).toISOString()
+              getStartOfDay(currPM.month).toISOString() ==
+                getStartOfDay(c.PostingMonth).toISOString()
+            // new Date(currPM.month).toISOString() ==
+            //   new Date(c.PostingMonth).toISOString()
           );
 
           const isIncluded = dbCats.at(0) ? dbCats[0].IsIncluded : true;

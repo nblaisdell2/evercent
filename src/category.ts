@@ -11,7 +11,13 @@ import {
   startOfToday,
 } from "date-fns";
 import { log } from "./utils/log";
-import { find, generateUUID, roundNumber, sum } from "./utils/util";
+import {
+  find,
+  generateUUID,
+  getStartOfDay,
+  roundNumber,
+  sum,
+} from "./utils/util";
 import { PayFrequency, UserData, getAmountByPayFrequency } from "./user";
 import {
   Budget,
@@ -555,7 +561,12 @@ const calculateMonthsAhead = (
 
   // We don't consider the current month when referencing our "months ahead"
   // number, so remove the current month if it's there
-  if (isEqual(parseISO(postingMonths[0].month), startOfMonth(new Date()))) {
+  if (
+    isEqual(
+      parseISO(postingMonths[0].month),
+      getStartOfDay(startOfMonth(new Date()).toISOString())
+    )
+  ) {
     postingMonths.shift();
   }
 
@@ -570,7 +581,7 @@ const calculateMonthsAhead = (
     // log("calculating months ahead");
     const { budgetCategory } = getBudgetCategoryForMonth(
       months,
-      parseISO(currPM.month),
+      getStartOfDay(currPM.month),
       category.categoryGroupID,
       category.categoryID
     );
