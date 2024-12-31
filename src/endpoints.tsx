@@ -46,6 +46,7 @@ import {
   find,
   generateUUID,
   getDistinctValues,
+  getStartOfDay,
   roundNumber,
   sleep,
 } from "./utils/util";
@@ -327,7 +328,7 @@ const getYNABBudgetData = async (
   budgetData.months = budgetData.months.map((m) => {
     return {
       ...m,
-      month: parse(m.month, "yyyy-MM-dd", new Date()).toISOString(),
+      month: getStartOfDay(m.month).toISOString(),
     };
   });
 

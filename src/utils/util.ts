@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 export const generateUUID = v4;
 import { writeFile } from "fs";
-import { formatInTimeZone } from "date-fns-tz";
+import { formatInTimeZone, getTimezoneOffset } from "date-fns-tz";
 
 export const roundNumber = (num: number, decimals: number = 0) => {
   const mul = Math.pow(10, decimals);
@@ -47,4 +47,49 @@ export const sleep = (ms: number) =>
 
 export const getUTCString = (parsedTime: string | number | Date) => {
   return formatInTimeZone(parsedTime, "UTC", "yyyy-MM-dd HH:mm:ss");
+};
+
+export const getStartOfDay = (strDate?: string) => {
+  const now = strDate ? new Date(strDate) : new Date();
+  const startOfDayUTC = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+  );
+  return startOfDayUTC;
+};
+
+export const getTZAdjustedDate = (dt: Date, timezone: string = "Etc/Utc") => {
+  const utcDate = new Date(
+    Date.UTC(
+      dt.getUTCFullYear(),
+      dt.getUTCMonth(),
+      dt.getUTCDate(),
+      dt.getUTCHours(),
+      dt.getUTCMinutes(),
+      dt.getUTCSeconds(),
+      -getTimezoneOffset(timezone)
+    )
+  );
+
+  return utcDate;
+};
+
+export const getTimezoneAdjustedDate = (
+  strDate?: string,
+  timezone: string = "Etc/Utc"
+) => {
+  const date = strDate ? new Date(strDate) : new Date();
+
+  const utcDate = new Date(
+    Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      date.getUTCHours(),
+      date.getUTCMinutes(),
+      date.getUTCSeconds(),
+      -getTimezoneOffset(timezone)
+    )
+  );
+
+  return utcDate;
 };

@@ -1,12 +1,11 @@
 import { addMonths, isEqual, parse, parseISO, startOfMonth } from "date-fns";
-import { format, utcToZonedTime, formatInTimeZone } from "date-fns-tz";
 import {
   YNABBudget,
   YNABBudgetMonth,
   YNABCategory,
   YNABCategoryGroup,
 } from "./ynab";
-import { find, getUTCString, sum } from "./utils/util";
+import { find, getStartOfDay, sum } from "./utils/util";
 import { log } from "./utils/log";
 import {
   CategoryGroup,
@@ -73,11 +72,11 @@ const createBudgetMonths = (
   category_groups: YNABCategoryGroup[],
   categories: YNABCategory[]
 ): BudgetMonth[] => {
-  const thisMonth = startOfMonth(new Date());
+  const thisMonth = getStartOfDay(startOfMonth(new Date()).toISOString());
 
   let tbb = 0;
   const newMonths = months.reduce((prev, curr, i) => {
-    const ynabMonth = parseISO(curr.month as string);
+    const ynabMonth = getStartOfDay(curr.month);
     if (i == 0) {
       tbb = curr.to_be_budgeted / 1000;
       log("TBB = ", tbb);
@@ -115,12 +114,12 @@ const createBudgetMonths = (
     // Append 10-years-worth more months at the end of the list, in case I need them
     // for calculating "posting months" into the future
     let lastMonth = newMonths[newMonths.length - 1];
-    let currMonth = parseISO(lastMonth.month);
+    let currMonth = parseISO(lastMonth.month.substring(0, 10));
     for (let i = 0; i < 120; i++) {
       currMonth = addMonths(currMonth, 1);
       newMonths.push({
         ...lastMonth,
-        month: currMonth.toISOString(),
+        month: getStartOfDay(currMonth.toISOString()).toISOString(),
       });
     }
   }
