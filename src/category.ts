@@ -342,7 +342,7 @@ export const calculateAdjustedAmount = (
       // BUT, if the activity for that category is less than 0, it means it's already
       // been paid, so we need to *re*-re-calculate by the frequency for that expense
       log("numMonths =", numMonths);
-      if (numMonths == 1 && budgetCategory.activity <= 0) {
+      if (numMonths == 1 && budgetCategory.activity < 0) {
         numMonths = getNumberOfMonthsByFrequency(
           category.regularExpenseDetails
         );
@@ -425,7 +425,7 @@ export const getPostingMonths = (
   );
 
   // @ts-ignore - should be a Date object, even though it's a string
-  let currMonth = startOfMonth(nextPaydate);
+  let currMonth = startOfMonth(getStartOfDay(nextPaydate));
 
   if (DEBUG(category)) log("amounts", { totalAmt, totalDesired, currMonth });
 
