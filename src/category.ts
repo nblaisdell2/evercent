@@ -1140,7 +1140,8 @@ export const toggleCategoryOptions = (
     budget,
     newCategory,
     userData.payFrequency,
-    userData.nextPaydate,
+    // @ts-ignore
+    parseISO(userData.nextPaydate),
     true
   );
   console.log("category AFTER", newCategory);
