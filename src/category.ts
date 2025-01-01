@@ -198,10 +198,7 @@ const createCategory = (
   };
   const adjAmount = calculateAdjustedAmount(category, months, true, false);
   category.adjustedAmount = adjAmount;
-  category.adjustedAmountPlusExtra = category.regularExpenseDetails
-    ?.includeOnChart
-    ? adjAmount + category.extraAmount
-    : 0;
+  category.adjustedAmountPlusExtra = getAdjustedAmountPlusExtra(category);
 
   const postingMonths = getPostingMonths(
     category,
@@ -272,6 +269,16 @@ const sameCategory = (
 
 // ---------------------------------------------------------
 // ---------------------------------------------------------
+
+export const getAdjustedAmountPlusExtra = (category: Category): number => {
+  if (
+    !category.regularExpenseDetails ||
+    category.regularExpenseDetails.includeOnChart
+  ) {
+    return category.adjustedAmount + category.extraAmount;
+  }
+  return 0;
+};
 
 export const calculateAdjustedAmount = (
   category: Category,
@@ -901,10 +908,7 @@ const calculateCategoryFields = (
     newCategory.adjustedAmount = newAdjustedAmount;
   }
 
-  newCategory.adjustedAmountPlusExtra = category.regularExpenseDetails
-    ?.includeOnChart
-    ? newCategory.adjustedAmount + newCategory.extraAmount
-    : 0;
+  newCategory.adjustedAmountPlusExtra = getAdjustedAmountPlusExtra(category);
 
   const newMonthsAhead = calculateMonthsAhead(
     newCategory,
