@@ -569,6 +569,8 @@ const calculateMonthsAhead = (
     120
   );
 
+  if (!postingMonths || postingMonths.length == 0) return 0;
+
   // We don't consider the current month when referencing our "months ahead"
   // number, so remove the current month if it's there
   if (
