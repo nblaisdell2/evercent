@@ -198,7 +198,10 @@ const createCategory = (
   };
   const adjAmount = calculateAdjustedAmount(category, months, true, false);
   category.adjustedAmount = adjAmount;
-  category.adjustedAmountPlusExtra = adjAmount + category.extraAmount;
+  category.adjustedAmountPlusExtra = category.regularExpenseDetails
+    ?.includeOnChart
+    ? adjAmount + category.extraAmount
+    : 0;
 
   const postingMonths = getPostingMonths(
     category,
@@ -898,8 +901,10 @@ const calculateCategoryFields = (
     newCategory.adjustedAmount = newAdjustedAmount;
   }
 
-  newCategory.adjustedAmountPlusExtra =
-    newCategory.adjustedAmount + newCategory.extraAmount;
+  newCategory.adjustedAmountPlusExtra = category.regularExpenseDetails
+    ?.includeOnChart
+    ? newCategory.adjustedAmount + newCategory.extraAmount
+    : 0;
 
   const newMonthsAhead = calculateMonthsAhead(
     newCategory,
