@@ -910,7 +910,7 @@ const calculateCategoryFields = (
     newCategory.adjustedAmount = newAdjustedAmount;
   }
 
-  newCategory.adjustedAmountPlusExtra = getAdjustedAmountPlusExtra(category);
+  newCategory.adjustedAmountPlusExtra = getAdjustedAmountPlusExtra(newCategory);
 
   const newMonthsAhead = calculateMonthsAhead(
     newCategory,
