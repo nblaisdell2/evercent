@@ -591,7 +591,7 @@ const calculateMonthsAhead = (
     // log("calculating months ahead");
     const { budgetCategory } = getBudgetCategoryForMonth(
       months,
-      getStartOfDay(currPM.month),
+      parseISO(currPM.month),
       category.categoryGroupID,
       category.categoryID
     );
