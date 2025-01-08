@@ -227,7 +227,7 @@ const createRegularExpenses = (
   return {
     guid: dbCat.CategoryGUID,
     isMonthly: dbCat.IsMonthly,
-    nextDueDate: new Date(dbCat.NextDueDate).toISOString(),
+    nextDueDate: dbCat.NextDueDate,
     monthsDivisor: dbCat.ExpenseMonthsDivisor,
     repeatFreqNum: dbCat.RepeatFreqNum,
     repeatFreqType: dbCat.RepeatFreqType,
@@ -425,7 +425,7 @@ export const getPostingMonths = (
   );
 
   // @ts-ignore - should be a Date object, even though it's a string
-  let currMonth = startOfMonth(getStartOfDay(nextPaydate));
+  let currMonth: Date = startOfMonth(getStartOfDay(nextPaydate));
 
   if (DEBUG(category)) log("amounts", { totalAmt, totalDesired, currMonth });
 
@@ -441,7 +441,7 @@ export const getPostingMonths = (
     // log("getPostingMonths");
     const bm = getBudgetMonth(months, currMonth);
     if (!bm) {
-      // if (DEBUG) log("Gotta leave!");
+      if (DEBUG(category)) log("Gotta leave!");
       return postingMonths;
     }
 

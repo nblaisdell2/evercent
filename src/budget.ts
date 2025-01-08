@@ -5,7 +5,7 @@ import {
   YNABCategory,
   YNABCategoryGroup,
 } from "./ynab";
-import { find, getStartOfDay, sum } from "./utils/util";
+import { find, getDateOnly, getStartOfDay, sum } from "./utils/util";
 import { log } from "./utils/log";
 import {
   CategoryGroup,
@@ -92,7 +92,7 @@ const createBudgetMonths = (
         ...prev,
         {
           groups,
-          month: ynabMonth.toISOString(),
+          month: curr.month,
           tbb: 0,
         },
       ];
@@ -114,12 +114,13 @@ const createBudgetMonths = (
     // Append 10-years-worth more months at the end of the list, in case I need them
     // for calculating "posting months" into the future
     let lastMonth = newMonths[newMonths.length - 1];
-    let currMonth = parseISO(lastMonth.month.substring(0, 10));
+    let currMonth = parseISO(lastMonth.month);
+    // let currMonth = new Date(lastMonth.month);
     for (let i = 0; i < 120; i++) {
       currMonth = addMonths(currMonth, 1);
       newMonths.push({
         ...lastMonth,
-        month: getStartOfDay(currMonth.toISOString()).toISOString(),
+        month: getDateOnly(currMonth),
       });
     }
   }
@@ -250,10 +251,7 @@ export const getBudgetMonth = (months: BudgetMonth[], dt: Date) => {
 
   // Get BudgetMonthCategory from the same month of
   // this category's next due date
-  return find(
-    months,
-    (bm) => bm.month.substring(0, 10) == monthStr.substring(0, 10)
-  );
+  return find(months, (bm) => bm.month == monthStr.substring(0, 10));
 };
 
 export const getBudgetCategories = (month: BudgetMonth) => {

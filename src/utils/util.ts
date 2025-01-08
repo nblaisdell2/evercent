@@ -49,6 +49,16 @@ export const getUTCString = (parsedTime: string | number | Date) => {
   return formatInTimeZone(parsedTime, "UTC", "yyyy-MM-dd HH:mm:ss");
 };
 
+export const getDateOnly = (dt: Date) => {
+  return (
+    dt.getFullYear().toString() +
+    "-" +
+    (dt.getMonth() + 1).toString().padStart(2, "0") +
+    "-" +
+    dt.getDate().toString().padStart(2, "0")
+  );
+};
+
 export const getStartOfDay = (strDate?: string) => {
   const now = strDate ? new Date(strDate) : new Date();
   const startOfDayUTC = new Date(

@@ -322,15 +322,15 @@ const getYNABBudgetData = async (
 
   let budgetData = data.data.budget as YNABBudget;
 
-  // Loop through the "months" object in the retrieved JSON object
-  // from YNAB and conver the "date-only" "month" value to an ISO
-  // "datetime" value, so that we get consistent times no matter the server
-  budgetData.months = budgetData.months.map((m) => {
-    return {
-      ...m,
-      month: getStartOfDay(m.month).toISOString(),
-    };
-  });
+  // // Loop through the "months" object in the retrieved JSON object
+  // // from YNAB and conver the "date-only" "month" value to an ISO
+  // // "datetime" value, so that we get consistent times no matter the server
+  // budgetData.months = budgetData.months.map((m) => {
+  //   return {
+  //     ...m,
+  //     month: getStartOfDay(m.month).toISOString(),
+  //   };
+  // });
 
   // Filter unwanted category groups BEFORE sending back to the user, so I don't
   // have to remember to do it everywhere else
@@ -1391,6 +1391,13 @@ export const getAllEvercentData = async ({
     userData.payFrequency,
     // @ts-ignore
     parseISO(userData.nextPaydate)
+  );
+  const dataRes2 = await getAllDataForUser(
+    userData.userID,
+    userData.budgetID,
+    userData.payFrequency,
+    // @ts-ignore
+    new Date(userData.nextPaydate)
   );
   if (dataRes.err || !dataRes.data) {
     return getResponseError(dataRes.err);
