@@ -1392,13 +1392,13 @@ export const getAllEvercentData = async ({
     // @ts-ignore
     parseISO(userData.nextPaydate)
   );
-  const dataRes2 = await getAllDataForUser(
-    userData.userID,
-    userData.budgetID,
-    userData.payFrequency,
-    // @ts-ignore
-    new Date(userData.nextPaydate)
-  );
+  // const dataRes2 = await getAllDataForUser(
+  //   userData.userID,
+  //   userData.budgetID,
+  //   userData.payFrequency,
+  //   // @ts-ignore
+  //   new Date(userData.nextPaydate)
+  // );
   if (dataRes.err || !dataRes.data) {
     return getResponseError(dataRes.err);
   }

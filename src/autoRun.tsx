@@ -139,9 +139,9 @@ const getAutoRunCategoryGroups = (
     return c;
   });
 
-  log("categoriesDB", backfilled);
+  // log("categoriesDB", backfilled);
   const groupIDs = getDistinctValues(backfilled, "CategoryGroupID");
-  log("groupIDs", groupIDs);
+  // log("groupIDs", groupIDs);
 
   for (let i = 0; i < categories.length; i++) {
     const currGroup = categories[i];
@@ -472,7 +472,7 @@ export const generateAutoRunCategoryGroups = (
   categories: CategoryGroup[],
   payFreq: PayFrequency
 ) => {
-  log("GENERATING from", categories);
+  // log("GENERATING from", categories);
 
   let returnGroups: AutoRunCategoryGroup[] = [];
   let returnCategories: AutoRunCategory[] = [];
