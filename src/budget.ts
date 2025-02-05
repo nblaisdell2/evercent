@@ -54,8 +54,8 @@ export type BudgetMonthCategory = {
 };
 
 export const createBudget = (budgetData: YNABBudget) => {
-  log("Data from YNAB!");
-  log(budgetData);
+  // log("Data from YNAB!");
+  // log(budgetData);
   return {
     id: budgetData.id,
     name: budgetData.name,
@@ -79,7 +79,7 @@ const createBudgetMonths = (
     const ynabMonth = getStartOfDay(curr.month);
     if (i == 0) {
       tbb = curr.to_be_budgeted / 1000;
-      log("TBB = ", tbb);
+      // log("TBB = ", tbb);
     }
 
     if (ynabMonth > thisMonth || isEqual(ynabMonth, thisMonth)) {

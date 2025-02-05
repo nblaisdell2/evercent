@@ -67,6 +67,15 @@ export const isOverRateLimitThreshold = (
   headers: AxiosResponseHeaders
 ): boolean => {
   let rateLim = headers["x-rate-limit"];
+
+  // Adding this line due to change in the YNAB API no longer including the "rate limit" header
+  // when a 429 Too Many Requests response is returned
+  //    https://api.ynab.com/#v1.73.0
+  //    2025-01-29: When a 429 Too Many Requests response is returned
+  //                because the Rate Limit has been exceeded,
+  //                a X-Rate-Limit response header is no longer included.
+  if (!rateLim) return true;
+
   // log("Rate Limit:", rateLim);
   let rateLimLeft = parseInt(rateLim.substring(0, rateLim.indexOf("/")));
   // log("Rate Limit Left", rateLimLeft);

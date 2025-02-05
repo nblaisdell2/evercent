@@ -472,7 +472,7 @@ export const getPostingMonths = (
       isEqual(parseISO(bm.month), startOfMonth(new Date())) &&
       ((!category.regularExpenseDetails?.multipleTransactions &&
         bc.activity < 0) ||
-        (useOverride ? 0 : bc.available) >= desiredPostAmt)
+        (useOverride ? 0 : bc.available) >= totalDesired)
     ) {
       currMonth = addMonths(currMonth, 1);
       continue;
